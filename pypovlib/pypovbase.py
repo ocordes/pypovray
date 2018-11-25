@@ -1,7 +1,7 @@
 # pypovobjects.py
 
-# wirtten by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2018-11-18
+# written by: Oliver Cordes 2015-02-27
+# changed by: Oliver Cordes 2018-11-25
 
 import sys
 
@@ -26,12 +26,12 @@ _fmt_key_vector = '{:s} <{:6f},{:6f},{:6f}>\n'
 # helper funtions
 
 
-def indent_str( nr ):
-    return ''.join( _indent_char * _indent_nr * nr )
-
-
-def write_indent( ffile, s, indent):
-    ffile.write( '%s%s' % ( indent_str( indent ), s ) )
+# def indent_str( nr ):
+#     return ''.join( _indent_char * _indent_nr * nr )
+#
+#
+# def write_indent( ffile, s, indent):
+#     ffile.write( '%s%s' % ( indent_str( indent ), s ) )
 
 
 def convert2vector( val ):
@@ -164,7 +164,19 @@ class Point3D( object ):
 
 # Povray basic object
 
-class PovBasicObject( object ):
+class PovWriterObject( object ):
+    # helper functios
+    def _indent_str( self, nr ):
+        return ''.join( _indent_char * _indent_nr * nr )
+
+
+    def _write_indent( self, ffile, s, indent):
+        ffile.write( self._indent_str( indent ) + s )
+        #ffile.write( '%s%s' % ( self._indent_str( indent ), s ) )
+
+
+
+class PovBasicObject( PovWriterObject ):
     def __init__( self, comment=None ):
         self._comment = comment
 
@@ -197,15 +209,6 @@ class PovBasicObject( object ):
 
 
     # helper functios
-    def _indent_str( self, nr ):
-        return ''.join( _indent_char * _indent_nr * nr )
-
-
-    def _write_indent( self, ffile, s, indent):
-        ffile.write( self._indent_str( indent ) + s )
-        #ffile.write( '%s%s' % ( self._indent_str( indent ), s ) )
-
-
     def _write_comment( self, ffile, indent=0 ):
         if self._comment is None: return
         self._write_indent( ffile, '// %s\n' % self._comment, indent )
