@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # wirtten by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2018-11-01
+# changed by: Oliver Cordes 2019-03-04
 
 import sys, os
 
@@ -18,8 +18,8 @@ from pypovlib.pypovtextures import *
 # constants
 
 __libname = 'pypovlib'
-__version = '0.1.10'
-__author =  'Oliver Cordes (C) 2015-2018'
+__version = '0.1.11'
+__author =  'Oliver Cordes (C) 2015-2019'
 
 
 # variables
@@ -194,6 +194,7 @@ class PovCSGObject( PovObject ):
         self.__translate               = None
         self.__scale                   = None
         self.__rotate_before_translate = True
+        self.__pre_commands            = []
 
 
     @property
@@ -203,7 +204,10 @@ class PovCSGObject( PovObject ):
 
     @macros.setter
     def macros( self, new_macro ):
-        self.__macros.append( new_macro )
+        if new_macro is None:
+            self.__macros = []
+        else:
+            self.__macros.append( new_macro )
 
 
     @property
@@ -213,7 +217,31 @@ class PovCSGObject( PovObject ):
 
     @full_matrix.setter
     def full_matrix( self, val ):
-        self.__full_matrix.append( convertarray2full_matrix( val ) )
+        if val is None:
+            self.__full_matrix = []
+        elif isinstance( val, ( list, tuple ) ):
+            l = True
+            if len( val ) == 12:   # check if matrices list or
+                                   # single matrix
+                try:
+                    m = convertarray2full_matrix( val[0] )
+                except:
+                    l = False
+
+            if l:
+                for m in val:
+                    self.__full_matrix.append( convertarray2full_matrix( m ) )
+            else:
+                self.__full_matrix.append( convertarray2full_matrix( val ) )
+
+        else:
+            self.__full_matrix.append( convertarray2full_matrix( val ) )
+
+
+    def full_matrix_list( self, val ):
+        if isinstance( val, ( list, tuple ) ):
+            for m in val:
+                self.__full_matrix.append( convertarray2full_matrix( m ) )
 
 
     @property
@@ -223,14 +251,17 @@ class PovCSGObject( PovObject ):
 
     @rotate.setter
     def rotate( self, new_rotate ):
-        rotate = Point3D( new_rotate )
-        self.__rotate.append( rotate )
+        if new_rotate is None:
+            self.__rotate = []
+        else:
+            rotate = Point3D( new_rotate )
+            self.__rotate.append( rotate )
 
-        if ( self._lights is not None):
-            # do the rotation also for bounded light objects
-            for l in self._lights:
-                if l.bound_object:
-                    l.rotate = rotate
+            if ( self._lights is not None):
+                # do the rotation also for bounded light objects
+                for l in self._lights:
+                    if l.bound_object:
+                        l.rotate = rotate
 
 
     def set_rotate( self, new_rotate ):
@@ -328,6 +359,10 @@ class PovCSGObject( PovObject ):
         self.__scale = Point3D( new_scale )
 
 
+    def add_pre_commands( self, new_command ):
+        self.__pre_commands.append( new_command )
+
+
     def _write_macros( self, ffile, indent=0 ):
         for m in self.__macros:
             self._write_indent( ffile, '{}\n'.format( m ), indent )
@@ -354,6 +389,7 @@ class PovCSGObject( PovObject ):
     def _write_rotate( self, ffile, indent=0 ):
         for r in self.__rotate:
            self._write_indent( ffile, 'rotate %s\n' % r, indent )
+
 
     def _write_rotation_matrix( self, ffile, indent=0 ):
         if self.__rotation_matrix is None: return
@@ -383,10 +419,16 @@ class PovCSGObject( PovObject ):
             self._write_rotation_matrix( ffile, indent=indent )
 
 
+    def _write_pre_commands( self, ffile, indent=0 ):
+        for cmd in self.__pre_commands:
+            cmd( ffile, indent=indent )
+
+
     def _write_attributes( self, ffile, indent=0 ):
-        self._write_macros( ffile, indent+1 )
-        self._write_texture( ffile, indent+1 )
-        self._write_geometrics( ffile, indent=indent+1 )
+        self._write_macros( ffile, indent)
+        self._write_texture( ffile, indent )
+        self._write_pre_commands( ffile, indent )
+        self._write_geometrics( ffile, indent=indent )
 
 
     def write_pov( self, ffile, indent = 0 ):
@@ -915,7 +957,7 @@ class PovHeightField( PovCSGObject ):
 # a simple PovFile generator
 
 class PovFile( PovBaseList ):
-    def __init__( self, filename = None, verbose = False, camera_optimze = False ):
+    def __init__( self, filename = None, verbose = False, camera_optimize = False ):
         PovBaseList.__init__( self )
         self._filename = filename
 
