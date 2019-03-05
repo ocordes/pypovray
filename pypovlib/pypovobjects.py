@@ -968,6 +968,15 @@ class PovFile( PovBaseList ):
         self._postfix_file = None
 
 
+    def config_size(self, width, height):
+        self._width = width
+        self._height = height
+
+
+    def config_povray_args(self, povray_args):
+        self._povray_args = povray_args
+
+
     def set_prefix_file( self, filename ):
         self._prefix_file = filename
 
