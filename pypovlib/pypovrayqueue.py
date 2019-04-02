@@ -178,5 +178,12 @@ class RQPovFile(PovFile):
 
             print(image.state)
             print(image.status())
+
+            started = self._rq_project.start_rendering(self._session)
+
+            if started:
+                print('Project switched to rendering mode, waiting for worker ...')
+            else:
+                print('Project cannot be switched to rendering mode!')
         else:
             print('Image couldn\'t be created!')
