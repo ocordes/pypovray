@@ -3,7 +3,7 @@
 pypovlib/pypovrayqueue.py
 
 written by: Oliver Cordes 2019-03-04
-changed by: Oliver Cordes 2019-03-18
+changed by: Oliver Cordes 2019-04-07
 
 """
 
@@ -12,11 +12,13 @@ import sys,os
 import configparser
 import tarfile
 import uuid
+import time
 
 try:
     from client.api import Session
     from client.projects import Project
     from client.images import Image
+    from client.files import File
 except:
     print('rayqueue client modules not found!')
     os.exit(-1)
@@ -43,7 +45,9 @@ class RQPovFile(PovFile):
                         config=None,
                         rq_project_name=None,
                         width=640,
-                        height=480):
+                        height=480,
+                        timeout=3600,
+                        sleep=5):
         PovFile.__init__(self,filename=filename,
                             verbose=verbose,
                             camera_optimize=camera_optimize)
@@ -57,6 +61,9 @@ class RQPovFile(PovFile):
 
         self._width = width
         self._height = height
+
+        self._timeout = timeout
+        self._sleep = sleep
 
 
     def _load_projects(self):
@@ -108,6 +115,43 @@ class RQPovFile(PovFile):
             config.write(configfile)
 
         return filename
+
+    def _wait_until_ready(self):
+        running_time = 0
+        while running_time <= self._timeout:
+            self._rq_project.update(self._session)
+            if self._rq_project.status() == 'Finished':
+                return True
+
+            print('Waiting ... %i/%i' % (running_time, self._timeout))
+            time.sleep(self._sleep)
+            running_time += self._sleep
+
+        print('Running into timeout!')
+
+
+    def _download_file(self, fileid, directory='.'):
+        if fileid != -1:
+            dbfile = File.get_db_by_id(self._session, fileid)
+            md5sum = dbfile.md5sum
+
+            status, filename = File.get_by_id(self._session, fileid,
+                                            directory, md5sum=md5sum)
+            print('Downloaded \'%s\'' % filename )
+
+
+
+    def _download_files(self, image, directory='.'):
+        # update all informations ;-)
+        image.update(self._session)
+
+        if hasattr(image, 'render_image_id'):
+            self._download_file(image.render_image_id)
+        if hasattr(image, 'log_file_id'):
+            self._download_file(image.log_file_id)
+
+        print('error code of rendering process: %i' % image.error_code)
+
 
 
     def write_povfile(self, filename=None):
@@ -176,13 +220,18 @@ class RQPovFile(PovFile):
             # waiting for the image to be ready!
             image = Image.query(self._session, image_id)
 
-            print(image.state)
-            print(image.status())
-
             started = self._rq_project.start_rendering(self._session)
 
             if started:
                 print('Project switched to rendering mode, waiting for worker ...')
+
+
+                if self._wait_until_ready():
+                    # Download files
+                    self._download_files(image)
+                else:
+                    print('File is not rendered within the time frame of %i seconds' %self._timeout)
+
             else:
                 print('Project cannot be switched to rendering mode!')
         else:
