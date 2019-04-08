@@ -1,14 +1,16 @@
 from setuptools import setup
 
 setup(
-    name='yourscript',
-    version='0.1',
-    py_modules=['yourscript'],
+    name='pypovlib',
+    version='0.0.1',
+    py_modules=['pypov'],
+    packages=['pypovlib'],
     install_requires=[
+     'numpy',
      'Click',
     ],
     entry_points='''
         [console_scripts]
-        yourscript=yourscript:cli
+        pypov=pypov:cli
     ''',
 )
