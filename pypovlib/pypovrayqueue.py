@@ -3,7 +3,7 @@
 pypovlib/pypovrayqueue.py
 
 written by: Oliver Cordes 2019-03-04
-changed by: Oliver Cordes 2019-04-07
+changed by: Oliver Cordes 2019-04-09
 
 """
 
@@ -15,13 +15,13 @@ import uuid
 import time
 
 try:
-    from client.api import Session
-    from client.projects import Project
-    from client.images import Image
-    from client.files import File
+    from rq_client.api import Session
+    from rq_client.projects import Project
+    from rq_client.images import Image
+    from rq_client.files import File
 except:
     print('rayqueue client modules not found!')
-    os.exit(-1)
+    sys.exit(-1)
 
 
 from pypovlib.pypovobjects import *
