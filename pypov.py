@@ -47,9 +47,8 @@ def prepare_import(path):
 def import_script(module_name, raise_if_not_found=True):
     __traceback_hide__ = True
 
-    print(os.getcwd())
-    __import__(module_name)
     try:
+        #__import__(module_name)
         module = importlib.import_module(module_name)
     except ImportError:
         # Reraise the ImportError if it occurred within the imported module.
