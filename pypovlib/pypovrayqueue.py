@@ -7,7 +7,7 @@ changed by: Oliver Cordes 2019-04-09
 
 """
 
-import sys,os
+import sys, os
 
 import configparser
 import tarfile
