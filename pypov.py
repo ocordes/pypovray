@@ -2,7 +2,7 @@
 """
 
 written by: Oliver Cordes 2019-04-08
-changed by: Oliver Cordes 2019-04-08
+changed by: Oliver Cordes 2019-04-10
 """
 
 import click
@@ -10,6 +10,10 @@ import click
 import os, sys
 import traceback
 import importlib
+
+
+from pypovlib.pypovobjects import PovFile
+
 
 # some exceptions
 class NoAppException(click.UsageError):
@@ -63,10 +67,38 @@ def import_script(module_name, raise_if_not_found=True):
                 'Could not import "{name}".'.format(name=module_name)
             )
         else:
-            return
+            return None
+
+    return module
 
 
-    print(module)
+def locate_app(module):
+    app = None
+
+    # Search for the most common names first.
+    for attr_name in ('app', 'application'):
+        app = getattr(module, attr_name, None)
+
+        if isinstance(app, PovFile):
+            return app
+
+    return app
+
+
+def load_app(script):
+    # update names and path for module loading
+    import_name = prepare_import(script)
+    module = import_script(import_name)
+    if module is None:
+        raise NoAppException(
+            'Module is none.'
+        )
+
+    app = locate_app(module)
+
+    return app
+
+
 
 
 @click.group()
@@ -83,11 +115,12 @@ def cli():
 def run(pyscript):
     """Runs a pypov script """
     click.echo('run')
-    click.echo(pyscript)
 
-    import_name = prepare_import(pyscript)
-    print(import_name)
-    import_script(import_name)
+    app = load_app(pyscript)
+    if app is None:
+        click.echo('PovFile application not found!')
+    else:
+        click.echo('PovFile application found ...')
 
 
 
