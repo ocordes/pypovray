@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # wirtten by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2019-03-04
+# changed by: Oliver Cordes 2019-04-14
 
 import sys, os
 
@@ -17,9 +17,9 @@ from pypovlib.pypovtextures import *
 
 # constants
 
-__libname = 'pypovlib'
-__version = '0.1.11'
-__author =  'Oliver Cordes (C) 2015-2019'
+__libname__ = 'pypovlib'
+__version__ = '0.1.12'
+__author__ =  'Oliver Cordes (C) 2015-2019'
 
 
 # variables
@@ -57,9 +57,9 @@ def reset_statistics():
 
 
 def _write_prefix_file( ffile ):
-    ffile.write( '// this file is generated\n// from %s V%s written by %s\n\n' % ( __libname,
-                                                                                    __version,
-                                                                                    __author ) )
+    ffile.write( '// this file is generated\n// from %s V%s written by %s\n\n' % ( __libname__,
+                                                                                    __version__,
+                                                                                    __author__ ) )
 
 
 def _write_postfix_file( ffile ):
