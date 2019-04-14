@@ -2,7 +2,7 @@
 """
 
 written by: Oliver Cordes 2019-04-08
-changed by: Oliver Cordes 2019-04-10
+changed by: Oliver Cordes 2019-04-14
 """
 
 import click
@@ -12,7 +12,7 @@ import traceback
 import importlib
 
 
-from pypovlib.pypovobjects import PovFile
+from pypovlib.pypovapp import PovApp
 
 
 # some exceptions
@@ -79,7 +79,7 @@ def locate_app(module):
     for attr_name in ('app', 'application'):
         app = getattr(module, attr_name, None)
 
-        if isinstance(app, PovFile):
+        if isinstance(app, PovApp):
             return app
 
     return app
@@ -100,7 +100,6 @@ def load_app(script):
 
 
 
-
 @click.group()
 #@click.argument('--script', envvar='PYPOV_APP')
 #@click.option('--script', envvar='PYPOV_APP')
@@ -112,16 +111,29 @@ def cli():
 
 @cli.command()
 @click.argument('pyscript', envvar='PYPOV_APP')
-def run(pyscript):
-    """Runs a pypov script """
-    click.echo('run')
-
+def build(pyscript):
+    """Run the build process from a pypov script """
     app = load_app(pyscript)
     if app is None:
         click.echo('PovFile application not found!')
     else:
         click.echo('PovFile application found ...')
 
+    app.build()
+
+
+@cli.command()
+@click.argument('pyscript', envvar='PYPOV_APP')
+def run(pyscript):
+    """Runs a pypov script """
+    app = load_app(pyscript)
+    if app is None:
+        click.echo('PovFile application not found!')
+    else:
+        click.echo('PovFile application found ...')
+
+    app.build()
+    app.run()
 
 
 if __name__ == '__main__':

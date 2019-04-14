@@ -18,7 +18,7 @@ from pypovlib.pypovtextures import *
 # constants
 
 __libname__ = 'pypovlib'
-__version__ = '0.1.12'
+__version__ = '0.1.13'
 __author__ =  'Oliver Cordes (C) 2015-2019'
 
 
