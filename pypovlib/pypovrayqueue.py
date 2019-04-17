@@ -66,6 +66,13 @@ class RQPovFile(PovFile):
         self._sleep = sleep
 
 
+    def set_geometry(self, width, height):
+        if width is not None:
+            self._width = width
+        if height is not None:
+            self._height = height
+
+
     def _load_projects(self):
         self._rq_projects = Project.queryall(self._session)
 

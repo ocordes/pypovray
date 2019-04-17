@@ -3,7 +3,7 @@
 pypovlib/pypovapp.py
 
 written by: Oliver Cordes 2019-04-14
-changed by: Oliver Cordes 2019-04-14
+changed by: Oliver Cordes 2019-04-17
 
 """
 
@@ -91,3 +91,9 @@ class PovApp(object):
     def add(self, povobjects):
         if self._povfile is not None:
             self._povfile.add(povobjects)
+
+
+    def set_geometry(self, width, height):
+        if self._type == PovApp_Image:
+            if self._has_rq:
+                self._povfile.set_geometry(width, height)

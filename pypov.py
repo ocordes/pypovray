@@ -124,7 +124,9 @@ def build(pyscript):
 
 @cli.command()
 @click.argument('pyscript', envvar='PYPOV_APP')
-def run(pyscript):
+@click.option('--width', type=int)
+@click.option('--height', type=int)
+def run(pyscript, width, height):
     """Runs a pypov script """
     app = load_app(pyscript)
     if app is None:
@@ -132,6 +134,7 @@ def run(pyscript):
     else:
         click.echo('PovFile application found ...')
 
+    app.set_geometry(width,height)
     app.build()
     app.run()
 
