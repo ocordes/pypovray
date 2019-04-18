@@ -3,13 +3,13 @@
 pypovlib/pypovapp.py
 
 written by: Oliver Cordes 2019-04-14
-changed by: Oliver Cordes 2019-04-17
+changed by: Oliver Cordes 2019-04-18
 
 """
 
 
 from pypovlib.pypovobjects import PovFile, print_statistics
-from pypovlib.pypovrayqueue import RQPovFile
+from pypovlib.pypovrayqueue import RQPovFile, RQPovAnimation
 
 
 PovApp_Unknown   = 0
@@ -23,6 +23,7 @@ class PovApp(object):
 
         self._type       = PovApp_Unknown
         self._filename   = None
+        self._directory  = None
         self._has_rq     = False
         self._rq_config  = None
 
@@ -39,6 +40,8 @@ class PovApp(object):
                 self._has_rq = True
             elif key == 'has_rq':
                 self._has_rq = value
+            elif key == 'directory':
+                self._directory = value
 
 
         if self._type == PovApp_Image:
@@ -47,6 +50,12 @@ class PovApp(object):
                                             config=self._rq_config)
             else:
                 self._povfile = PovFile(filename=self._filename)
+        elif self._type == PovApp_Animation:
+            if self._has_rq:
+                self._povfile = RQPovAnimation(directory=self._directory,
+                                                config=self._rq_config)
+            else:
+                self._povfile = PovAnimation(directory=self._directory)
 
 
         else:
@@ -67,7 +76,10 @@ class PovApp(object):
 
     def run(self, **kwargs):
         if self._povfile is not None:
-            self._povfile.write_povfile()
+            if self._type == PovApp_Image:
+                self._povfile.write_povfile()
+            elif self._type == PovApp_Animation:
+                self._povfile.animate()
 
 
 

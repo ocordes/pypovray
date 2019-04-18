@@ -25,6 +25,7 @@ except:
 
 
 from pypovlib.pypovobjects import *
+from pypovlib.pypovanimation import *
 
 
 # helper functions
@@ -38,32 +39,26 @@ def tarinfo_reset(tarinfo):
 
 
 
-class RQPovFile(PovFile):
-    def __init__(self, filename=None,
-                        verbose=False,
-                        camera_optimize=False,
-                        config=None,
-                        rq_project_name=None,
-                        width=640,
-                        height=480,
-                        timeout=3600,
-                        sleep=5):
-        PovFile.__init__(self,filename=filename,
-                            verbose=verbose,
-                            camera_optimize=camera_optimize)
+class RQPovObj(object):
+    def __init__(self, config=None,
+                       rq_project_name=None,
+                       timeout=3600,
+                       sleep=5,
+                       width=640,
+                       height=480):
 
+        # RQ specific information
         self._session = Session(config=config, verbose=True)
-
 
         self._rq_project_name = rq_project_name
         self._rq_projects = None
         self._rq_project  = None
 
-        self._width = width
-        self._height = height
-
         self._timeout = timeout
         self._sleep = sleep
+
+        self._width = width
+        self._height = height
 
 
     def set_geometry(self, width, height):
@@ -105,9 +100,9 @@ class RQPovFile(PovFile):
                 tar.add(f, filter=tarinfo_reset)
 
 
-    def _create_master_ini(self):
+    def _create_master_ini(self, filename):
 
-        pre, ext = os.path.splitext(self._filename)
+        pre, ext = os.path.splitext(filename)
         outname = pre + '.png'
 
         data = { 'scene': self._filename,
@@ -161,19 +156,41 @@ class RQPovFile(PovFile):
 
 
 
+
+class RQPovFile(PovFile, RQPovObj):
+    def __init__(self, filename=None,
+                        verbose=False,
+                        camera_optimize=False,
+                        config=None,
+                        rq_project_name=None,
+                        width=640,
+                        height=480,
+                        timeout=3600,
+                        sleep=5):
+        PovFile.__init__(self,filename=filename,
+                            verbose=verbose,
+                            camera_optimize=camera_optimize)
+
+        RQPovObj.__init__(self, config=config,
+                               rq_project_name=rq_project_name,
+                               timeout=timeout,
+                               sleep=sleep,
+                               width=width,
+                               height=height)
+
+
     def write_povfile(self, filename=None):
         # first save the standard file
         PovFile.write_povfile(self, filename=filename)
 
 
-        # generates a temptile name
+        # generates a tempfile name
 
-        #tempfile = os.path.join('/tmp','image_%s.tar.gz' %(str(uuid.uuid4())))
         tempfile = os.path.join('/tmp','image_%s.tar.gz' %('simple'))
 
         listoffiles = []
         listoffiles.append(self._filename)
-        listoffiles.append(self._create_master_ini())
+        listoffiles.append(self._create_master_ini(self._filename))
 
         self._create_rq_image_file(tempfile, listoffiles)
 
@@ -243,3 +260,26 @@ class RQPovFile(PovFile):
                 print('Project cannot be switched to rendering mode!')
         else:
             print('Image couldn\'t be created!')
+
+
+
+class RQPovAnimation(PovAnimation, RQPovObj):
+    def __init__(self, directory=None,
+                        verbose=False,
+                        camera_optimize=False,
+                        config=None,
+                        rq_project_name=None,
+                        width=640,
+                        height=480,
+                        timeout=3600,
+                        sleep=5):
+        PovAnimation.__init__(self, directory=directory,
+                                verbose=verbose,
+                                camera_optimize=camera_optimize)
+
+        RQPovObj.__init__(self, config=config,
+                               rq_project_name=rq_project_name,
+                               timeout=timeout,
+                               sleep=sleep,
+                               width=width,
+                               height=height)

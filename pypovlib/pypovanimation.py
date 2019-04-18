@@ -1,7 +1,7 @@
 # pypovanimation.py
 
 # wirtten by: Oliver Cordes 2015-07-17
-# changed by: Oliver Cordes 2018-03-12
+# changed by: Oliver Cordes 2018-04-18
 
 #
 import sys
@@ -23,8 +23,11 @@ import sys, os
 # class
 
 class PovAnimation( PovFile ):
-    def __init__( self, directory='.', name_prefix='animation' ):
-        PovFile.__init__( self )
+    def __init__(self, directory='.',
+                       name_prefix='animation',
+                       camera_optimize=False,
+                       verbose=False,):
+        PovFile.__init__(self, camera_optimize=camera_optimize, verbose=verbose)
 
         self._directory   = directory
         self._name_prefix = name_prefix
@@ -69,9 +72,16 @@ class PovAnimation( PovFile ):
             try:
                 os.mkdir( self._directory )
             except:
-                print( 'Cannot access directory \'%s\' ! Program aborted!' % self._directory )
-                sys.exit( 1 )
+                print('ERROR: Cannot access directory \'%s\' !' % self._directory )
+                return
 
+        if frames is None:
+            print('ERROR: No frames given!')
+            return
+
+        if (duration is None) and (time_delta is None):
+            print('ERROR: Neither duration or time_delta is given!')
+            return
 
         if duration is None :
             time_delta = time_delta
@@ -89,12 +99,12 @@ class PovAnimation( PovFile ):
 
             fname = '%s/%s%05i.pov' % ( self._directory, self._name_prefix, fnr )
 
-            self.write_povfile( fname )
-            self.update_timeline( time_abs, time_delta, fnr )
+            self.write_povfile(fname)
+            self.update_timeline(time_abs, time_delta, fnr)
 
-            self.update_time( time_abs)
-            self.update_timedelta( time_delta )
-            self.update_frame( fnr )
+            self.update_time(time_abs)
+            self.update_timedelta(time_delta)
+            self.update_frame(fnr)
 
             # prepare the next step
             time_abs += time_delta
