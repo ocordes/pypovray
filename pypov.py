@@ -2,7 +2,7 @@
 """
 
 written by: Oliver Cordes 2019-04-08
-changed by: Oliver Cordes 2019-04-14
+changed by: Oliver Cordes 2019-04-19
 """
 
 import click
@@ -111,7 +111,10 @@ def cli():
 
 @cli.command()
 @click.argument('pyscript', envvar='PYPOV_APP')
-def build(pyscript):
+@click.option('--fps', type=int, help='fps for the animation')
+@click.option('--frames', type=int, help='numer of animation frames')
+@click.option('--duration', type=int, help='duration of the animation in seconds')
+def build(pyscript, fps, frames, duration):
     """Run the build process from a pypov script """
     app = load_app(pyscript)
     if app is None:
@@ -119,14 +122,23 @@ def build(pyscript):
     else:
         click.echo('PovFile application found ...')
 
+    # set all parameters individually
+    app.set_fps(fps)
+    app.set_frames(frames)
+    app.set_duration(duration)
+
+    # build
     app.build()
 
 
 @cli.command()
 @click.argument('pyscript', envvar='PYPOV_APP')
-@click.option('--width', type=int)
-@click.option('--height', type=int)
-def run(pyscript, width, height):
+@click.option('--width', type=int, help='width of the render image')
+@click.option('--height', type=int, help='height of the render image')
+@click.option('--fps', type=int, help='fps for the animation')
+@click.option('--frames', type=int, help='numer of animation frames')
+@click.option('--duration', type=int, help='duration of the animation in seconds')
+def run(pyscript, width, height, fps, frames, duration):
     """Runs a pypov script """
     app = load_app(pyscript)
     if app is None:
@@ -134,7 +146,13 @@ def run(pyscript, width, height):
     else:
         click.echo('PovFile application found ...')
 
+    # set all parameters individually
     app.set_geometry(width,height)
+    app.set_fps(fps)
+    app.set_frames(frames)
+    app.set_duration(duration)
+
+    # build and run
     app.build()
     app.run()
 

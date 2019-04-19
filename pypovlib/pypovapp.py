@@ -109,3 +109,18 @@ class PovApp(object):
         if self._type == PovApp_Image:
             if self._has_rq:
                 self._povfile.set_geometry(width, height)
+
+
+    def set_fps(self, fps):
+        if self._type == PovApp_Animation:
+            self._povfile.set_fps(fps)
+
+
+    def set_frames(self, frames):
+        if self._type == PovApp_Animation:
+            self._povfile.set_frames(frames)
+
+
+    def set_duration(self, duration):
+        if self._type == PovApp_Animation:
+            self._povfile.set_duration(duration)
