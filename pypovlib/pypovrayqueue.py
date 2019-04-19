@@ -16,7 +16,7 @@ import time
 
 try:
     from rq_client.api import Session
-    from rq_client.projects import Project
+    from rq_client.projects import Project, PROJECT_TYPE_IMAGE, PROJECT_TYPE_ANIMATION
     from rq_client.images import Image
     from rq_client.files import File
 except:
@@ -72,29 +72,46 @@ class RQPovObj(object):
         self._rq_projects = Project.queryall(self._session)
 
 
-    def _select_rq_project(self):
-        if self._rq_project_name is None:
+    def _select_rq_project(self, project_type):
+        if self._rq_project_name is not None:
+            for p in self._rq_projects:
+                if p.name ==  self._rq_projectname:
+                    return p
+
+        # ask for selecting a project
+        retry = True
+        while retry:
             print('All projects:')
             for p in self._rq_projects:
                 print('<%4i> %s' % (p.id, p.name))
 
             print('-'*80)
-            user_input = input('Enter the project id:')
+            user_input = input('Enter the project id: ')
             print()
-            try:
-                id = int(user_input)-1   # count from zero!
-                return self._rq_projects[id]
-            except:
-                pass
-            return None
-        else:
-            for p in self._rq_projects:
-                if p.name ==  self._rq_projectname:
-                    return p
-            return None
+
+            user_input = int(user_input)
+
+            # check for user abort
+            if user_input == 0:
+                return None
+
+            id = user_input-1   # count from zero!
+
+            #checks
+            if id >= len(self._rq_projects):
+                print('Index outside of list. Please retry!')
+            else:
+                p = self._rq_projects[id]
+                if p.project_type != project_type:
+                    print('Wrong project type! Select a new one!')
+                else:
+                    return self._rq_projects[id]
+
+            print()
 
 
-    def _create_rq_image_file(self, filename, listoffiles):
+
+    def _create_image_archive(self, filename, listoffiles):
         with tarfile.open(filename, 'w:gz') as tar:
             for f in listoffiles:
                 tar.add(f, filter=tarinfo_reset)
@@ -117,6 +134,44 @@ class RQPovObj(object):
             config.write(configfile)
 
         return filename
+
+
+    def _create_image(self, filename):
+        # generates a tempfile name
+
+        tempfile = os.path.join('/tmp','image_%s.tar.gz' %('simple'))
+
+        listoffiles = []
+        listoffiles.append(filename)
+        listoffiles.append(self._create_master_ini(filename))
+
+        self._create_image_archive(tempfile, listoffiles)
+
+        # upload the image description
+
+        do_trying = True
+        while do_trying:
+            image_id = Image.create(self._session, self._rq_project.id, tempfile)
+
+            if image_id != -1:
+                do_trying = False
+            else:
+                print('Image creation failed! Possible solutions:')
+                print('------------------------------------------')
+                print(' <1> Reset project')
+                user_input = int(input('Your choice: '))
+
+                if user_input != 1:
+                    do_trying = False
+                else:
+                    self._rq_project.reset(self._session)
+        # end while
+
+        # remove temporary file
+        os.remove(tempfile)
+
+        return image_id
+
 
     def _wait_until_ready(self):
         running_time = 0
@@ -184,16 +239,6 @@ class RQPovFile(PovFile, RQPovObj):
         PovFile.write_povfile(self, filename=filename)
 
 
-        # generates a tempfile name
-
-        tempfile = os.path.join('/tmp','image_%s.tar.gz' %('simple'))
-
-        listoffiles = []
-        listoffiles.append(self._filename)
-        listoffiles.append(self._create_master_ini(self._filename))
-
-        self._create_rq_image_file(tempfile, listoffiles)
-
         # now connects to the RQ service
 
         if not self._session.login():
@@ -202,8 +247,11 @@ class RQPovFile(PovFile, RQPovObj):
 
         print('Successfully logged in to the RQ service!')
         self._load_projects()
-        self._rq_project = self._select_rq_project()
+        self._rq_project = self._select_rq_project(PROJECT_TYPE_IMAGE)
 
+        if self._rq_project is None:
+            print('User abort!')
+            return
 
         # clear old files...
         ret = self._rq_project.clear_images(self._session)
@@ -212,30 +260,9 @@ class RQPovFile(PovFile, RQPovObj):
         else:
             print('Something went wrong while clearing old files!')
 
-        # upload the image description
 
-        do_trying = True
-        while do_trying:
-            image_id = Image.create(self._session, self._rq_project.id, tempfile)
-
-            if image_id != -1:
-                do_trying = False
-            else:
-                print('Image creation failed! Possible solutions:')
-                print('------------------------------------------')
-                print(' <1> Reset project')
-                user_input = int(input('Your choice: '))
-
-                if user_input != 1:
-                    do_trying = False
-                else:
-                    self._rq_project.reset(self._session)
-
-        # end while
-
-
-        # remove temporary file
-        os.remove(tempfile)
+        # compile all data and create a rq image
+        image_id = self._create_image(self._filename)
 
         if image_id != -1:
             print('New image with id=%i created' % image_id)
@@ -283,3 +310,18 @@ class RQPovAnimation(PovAnimation, RQPovObj):
                                sleep=sleep,
                                width=width,
                                height=height)
+
+        self._animation_files = []
+
+
+    def write_povfile(self, filename=None):
+        # first save the standard file
+        PovFile.write_povfile(self, filename=filename)
+
+        self._animation_files.append(self._filename)
+
+
+    def animate( self, frames = None, duration = None, fps = None ):
+        PovAnimation.animate(self, frames=frames, duration=duration, fps=fps)
+
+        print(self._animation_files)
