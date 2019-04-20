@@ -68,11 +68,18 @@ class RQPovObj(object):
             self._height = height
 
 
-    def _load_projects(self):
-        self._rq_projects = Project.queryall(self._session)
+    def _rq_login(self):
+        if not self._session.login():
+            print('Cannot login into the RQ service!')
+            return False
+
+        print('Successfully logged in to the RQ service!')
+
+        return True
 
 
     def _select_rq_project(self, project_type):
+        self._rq_projects = Project.queryall(self._session)
         if self._rq_project_name is not None:
             for p in self._rq_projects:
                 if p.name ==  self._rq_projectname:
@@ -170,7 +177,17 @@ class RQPovObj(object):
         # remove temporary file
         os.remove(tempfile)
 
-        return image_id
+
+        if image_id == -1:
+            print('Image couldn\'t be created!')
+            image = None
+        else:
+            print('New image with id=%i created' % image_id)
+
+            # this is the code for testing the loop
+            # waiting for the image to be ready!
+            image = Image.query(self._session, image_id)
+        return image
 
 
     def _wait_until_ready(self):
@@ -197,18 +214,19 @@ class RQPovObj(object):
             print('Downloaded \'%s\'' % filename )
 
 
-
-    def _download_files(self, image, directory='.'):
-        # update all informations ;-)
-        image.update(self._session)
-
-        if hasattr(image, 'render_image_id'):
-            self._download_file(image.render_image_id)
-        if hasattr(image, 'log_file_id'):
-            self._download_file(image.log_file_id)
-
-        print('error code of rendering process: %i' % image.error_code)
-
+    def _wait_download_files(self, list_of_images, directory='.'):
+        new_list = []
+        for image in list_of_images:
+            image.update(self._session)
+            print(image.status())
+            if image.status() == 'Finished':
+                if hasattr(image, 'render_image_id'):
+                    self._download_file(image.render_image_id, directory=directory)
+                if hasattr(image, 'log_file_id'):
+                    self._download_file(image.log_file_id, directory=directory)
+                print('error code of rendering process: %i' % image.error_code)
+            else:
+                new_list.append(image)
 
 
 
@@ -239,14 +257,12 @@ class RQPovFile(PovFile, RQPovObj):
         PovFile.write_povfile(self, filename=filename)
 
 
-        # now connects to the RQ service
+        print('Submitting image to RQ for rendering ...')
 
-        if not self._session.login():
-            print('Cannot login into the RQ service!')
+        # now connects to the RQ service
+        if not self._rq_login():
             return
 
-        print('Successfully logged in to the RQ service!')
-        self._load_projects()
         self._rq_project = self._select_rq_project(PROJECT_TYPE_IMAGE)
 
         if self._rq_project is None:
@@ -262,31 +278,28 @@ class RQPovFile(PovFile, RQPovObj):
 
 
         # compile all data and create a rq image
-        image_id = self._create_image(self._filename)
+        image = self._create_image(self._filename)
 
-        if image_id != -1:
-            print('New image with id=%i created' % image_id)
+        if image is None:
+            return
 
-            # this is the code for testing the loop
-            # waiting for the image to be ready!
-            image = Image.query(self._session, image_id)
+        # switch the project into rendering mode
+        started = self._rq_project.start_rendering(self._session)
 
-            started = self._rq_project.start_rendering(self._session)
-
-            if started:
-                print('Project switched to rendering mode, waiting for worker ...')
+        if started:
+            print('Project switched to rendering mode, waiting for worker ...')
 
 
-                if self._wait_until_ready():
-                    # Download files
-                    self._download_files(image)
-                else:
-                    print('File is not rendered within the time frame of %i seconds' %self._timeout)
-
+            if self._wait_until_ready():
+                # Download files
+                #self._download_files(image)
+                self._wait_download_files([image])
             else:
-                print('Project cannot be switched to rendering mode!')
+                print('File is not rendered within the time frame of %i seconds' %self._timeout)
+
         else:
-            print('Image couldn\'t be created!')
+            print('Project cannot be switched to rendering mode!')
+
 
 
 
@@ -323,5 +336,8 @@ class RQPovAnimation(PovAnimation, RQPovObj):
 
     def animate( self, frames = None, duration = None, fps = None ):
         PovAnimation.animate(self, frames=frames, duration=duration, fps=fps)
+
+        print('Submitting image to RQ for rendering ...')
+
 
         print(self._animation_files)
