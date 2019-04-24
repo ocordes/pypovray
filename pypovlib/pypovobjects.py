@@ -669,11 +669,12 @@ class PovSkySphere( PovCSGObject ):
 
 class PovBaseList( object ):
     def __init__( self ):
-        self._items = []
+        self._items       = []
 
-        self._includes  = []
-        self._declares  = {}
-        self._macro_def = []
+        self._includes    = []
+        self._declares    = {}
+        self._macro_def   = []
+        self._extra_files = []
 
 
     # handle includes/declares
@@ -714,6 +715,22 @@ class PovBaseList( object ):
                     includes.append( i )
 
         return includes
+
+
+    def collect_extra_files(self):
+        extra_files = self._extra_files
+
+        for i in self._items:
+            if hasattr(i, 'collect_extra_files'):
+                efiles = i.collect_extra_files()
+            elif hasattr(i, '_extra_files'):
+                efiles = i._extra_files
+            else:
+                for i in efiles:
+                    if i not in extra_files:
+                        extra_files.append(i)
+
+        return extra_files
 
 
     def collect_declares( self ):
@@ -1015,8 +1032,12 @@ class PovFile( PovBaseList ):
         return incl
 
 
+    def collect_extra_files(self):
+        extra_files = PovBaseList.collect_extra_files(self)
+
+
     # generate povfile
-    def write_povfile( self, filename = None ):
+    def write_povfile(self, filename = None, submit=True):
         if filename != None:
             self.set_filename( filename )
 

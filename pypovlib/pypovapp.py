@@ -73,6 +73,13 @@ class PovApp(object):
         print_statistics()
 
 
+    def create(self, **kwars):
+        if self._povfile is not None:
+            if self._type == PovApp_Image:
+                self._povfile.write_povfile(submit=False)
+            elif self._type == PovApp_Animation:
+                self._povfile.animate(submit=False)
+
 
     def run(self, **kwargs):
         if self._povfile is not None:

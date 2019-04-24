@@ -106,7 +106,7 @@ class PovAnimation( PovFile ):
         return frames, time_delta
 
 
-    def animate( self, frames = None, duration = None, fps = None ):
+    def animate(self, frames = None, duration = None, fps = None, submit=False):
         # overwrite given parameters from pypovapp even if the
         # combination of variables are wrong
         self.set_frames(frames)

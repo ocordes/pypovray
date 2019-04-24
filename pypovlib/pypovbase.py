@@ -180,9 +180,10 @@ class PovBasicObject( PovWriterObject ):
     def __init__( self, comment=None ):
         self._comment = comment
 
-        self._includes   = []
-        self._declares   = {}
-        self._macro_defs = []
+        self._includes    = []
+        self._declares    = {}
+        self._macro_defs  = []
+        self._extra_files = []
 
 
     # handle includes/declares/macros
@@ -206,6 +207,13 @@ class PovBasicObject( PovWriterObject ):
                 self.add_macro( i )
         else:
             self._macro_def.append( macrodef )
+
+
+    def add_extra_file( self, efile ):
+        if efile in self._extra_files:
+            pass
+        else:
+            self._extra_files.append(efile)
 
 
     # helper functios

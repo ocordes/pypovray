@@ -394,11 +394,12 @@ class RQPovFile(PovFile, RQPovObj):
                                height=height)
 
 
-    def write_povfile(self, filename=None):
+    def write_povfile(self, filename=None, submit=True):
         # first save the standard file
         PovFile.write_povfile(self, filename=filename)
 
-        self.rq_execute(PROJECT_TYPE_IMAGE, [self._filename], directory='.')
+        if submit:
+            self.rq_execute(PROJECT_TYPE_IMAGE, [self._filename], directory='.')
 
         return
 
@@ -435,9 +436,10 @@ class RQPovAnimation(PovAnimation, RQPovObj):
         self._animation_files.append(self._filename)
 
 
-    def animate( self, frames = None, duration = None, fps = None ):
+    def animate(self, frames = None, duration = None, fps = None, submit=True):
         PovAnimation.animate(self, frames=frames, duration=duration, fps=fps)
 
-        self.rq_execute(PROJECT_TYPE_ANIMATION, self._animation_files, directory=self._directory)
+        if submit:
+            self.rq_execute(PROJECT_TYPE_ANIMATION, self._animation_files, directory=self._directory)
 
         return
