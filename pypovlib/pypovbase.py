@@ -1,9 +1,9 @@
 # pypovobjects.py
 
 # written by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2018-11-25
+# changed by: Oliver Cordes 2019-04-25
 
-import sys
+import sys, os
 
 try:
     import numpy as np
@@ -210,10 +210,11 @@ class PovBasicObject( PovWriterObject ):
 
 
     def add_extra_file( self, efile ):
-        if efile in self._extra_files:
-            pass
-        else:
-            self._extra_files.append(efile)
+        if os.access(efile, os.R_OK):
+            if efile in self._extra_files:
+                pass
+            else:
+                self._extra_files.append(efile)
 
 
     # helper functios

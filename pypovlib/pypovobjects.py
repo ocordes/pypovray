@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # wirtten by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2019-04-14
+# changed by: Oliver Cordes 2019-04-25
 
 import sys, os
 
@@ -18,7 +18,7 @@ from pypovlib.pypovtextures import *
 # constants
 
 __libname__ = 'pypovlib'
-__version__ = '0.1.13'
+__version__ = '0.1.14'
 __author__ =  'Oliver Cordes (C) 2015-2019'
 
 
@@ -726,9 +726,11 @@ class PovBaseList( object ):
             elif hasattr(i, '_extra_files'):
                 efiles = i._extra_files
             else:
-                for i in efiles:
-                    if i not in extra_files:
-                        extra_files.append(i)
+                efiles = []
+
+            for i in efiles:
+                if i not in extra_files:
+                    extra_files.append(i)
 
         return extra_files
 
@@ -954,6 +956,7 @@ class PovHeightField( PovCSGObject ):
         PovCSGObject.__init__( self,comment=comment )
         self._image_name = image_name
         self._smooth     = smooth
+        self.add_extra_file(self._image_name)
 
 
     def write_pov( self, ffile, indent = 0 ):
@@ -983,6 +986,8 @@ class PovFile( PovBaseList ):
 
         self._prefix_file  = None
         self._postfix_file = None
+
+        self.extra_files   = None
 
 
     def config_size(self, width, height):
@@ -1035,6 +1040,8 @@ class PovFile( PovBaseList ):
     def collect_extra_files(self):
         extra_files = PovBaseList.collect_extra_files(self)
 
+        return extra_files
+
 
     # generate povfile
     def write_povfile(self, filename = None, submit=True):
@@ -1057,6 +1064,10 @@ class PovFile( PovBaseList ):
 
         # collect macros
         macro_defs = self.collect_macro_defs()
+
+
+        self.extra_files = self.collect_extra_files()
+        print(self.extra_files)
 
         # check for includes/macro_defs in declare objects
         for key in declares:

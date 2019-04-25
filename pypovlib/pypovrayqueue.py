@@ -154,6 +154,8 @@ class RQPovObj(object):
         listoffiles.append(filename)
         listoffiles.append(self._create_master_ini(filename))
 
+        listoffiles += self.extra_files
+
         self._create_image_archive(tempfile, listoffiles)
 
         # upload the image description
