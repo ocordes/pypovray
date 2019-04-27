@@ -215,6 +215,8 @@ class PovBasicObject( PovWriterObject ):
                 pass
             else:
                 self._extra_files.append(efile)
+        else:
+            print('WARNING: File \'%s\' not found!' % efile)
 
 
     # helper functios
