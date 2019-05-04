@@ -18,7 +18,7 @@ from pypovlib.pypovtextures import *
 # constants
 
 __libname__ = 'pypovlib'
-__version__ = '0.1.14'
+__version__ = '0.1.15'
 __author__ =  'Oliver Cordes (C) 2015-2019'
 
 
@@ -98,8 +98,8 @@ class PovObject( PovBasicObject ):
         if self._texture is None: return
 
         for texture in self._texture:
-            if ( isinstance( texture, PovTexture ) ) or ( isinstance( texture, PovPigment ) ):
-                self._texture.write_pov( ffile, indent )
+            if ( isinstance( texture, (PovTexture, PovPigment, PovTextureRaw) ) ):
+                texture.write_pov( ffile, indent )
             else:
                 self._write_indent( ffile, 'texture{\n', indent )
                 self._write_indent( ffile, '%s\n' % texture, indent+1 )
@@ -192,7 +192,7 @@ class PovCSGObject( PovObject ):
         self.__rotate                  = []
         self.__rotation_matrix         = None
         self.__translate               = None
-        self.__scale                   = None
+        self.__scale                   = []
         self.__rotate_before_translate = True
         self.__pre_commands            = []
 
@@ -346,17 +346,24 @@ class PovCSGObject( PovObject ):
 
     @property
     def scale( self ):
-        return self._scale
+        sc = None
+        for i in self.__scale:
+            if sc is None:
+                sc = i
+            else:
+                sc *= i
+
+        return sc
 
 
     @scale.setter
     def scale( self, new_scale ):
-        self.__scale = Point3D( new_scale )
+        self.__scale.append(Point3D(new_scale))
 
 
     def set_scale( self, new_scale ):
         deprecated( 'set_scale')
-        self.__scale = Point3D( new_scale )
+        self.__scale.append(Point3D(new_scale))
 
 
     def add_pre_commands( self, new_command ):
@@ -376,8 +383,9 @@ class PovCSGObject( PovObject ):
 
 
     def _write_scale( self, ffile, indent=0 ):
-        if self.__scale is None: return
-        self._write_indent( ffile, 'scale %s\n' % self.__scale, indent )
+        if len(self.__scale) == 0: return
+        for sc in self.__scale:
+            self._write_indent( ffile, 'scale %s\n' % sc, indent )
 
 
     def _write_translate( self, ffile, indent=0 ):

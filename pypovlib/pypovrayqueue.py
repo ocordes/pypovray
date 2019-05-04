@@ -73,6 +73,8 @@ class RQPovObj(object):
             print('Cannot login into the RQ service!')
             return False
 
+        self._session.send_host_info()
+
         print('Successfully logged in to the RQ service!')
 
         return True
