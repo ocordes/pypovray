@@ -2,7 +2,7 @@
 """
 
 written by: Oliver Cordes 2019-04-08
-changed by: Oliver Cordes 2019-04-24
+changed by: Oliver Cordes 2019-05-04
 """
 
 import click
@@ -159,12 +159,13 @@ def create(pyscript, width, height, fps, frames, duration):
 
 @cli.command()
 @click.argument('pyscript', envvar='PYPOV_APP')
+@click.option('--project', type=str, default='', help='project name or id')
 @click.option('--width', type=int, help='width of the render image')
 @click.option('--height', type=int, help='height of the render image')
 @click.option('--fps', type=int, help='fps for the animation')
 @click.option('--frames', type=int, help='numer of animation frames')
 @click.option('--duration', type=int, help='duration of the animation in seconds')
-def run(pyscript, width, height, fps, frames, duration):
+def run(pyscript, width, height, fps, frames, duration, project):
     """Runs a pypov script """
     app = load_app(pyscript)
     if app is None:
@@ -177,6 +178,7 @@ def run(pyscript, width, height, fps, frames, duration):
     app.set_fps(fps)
     app.set_frames(frames)
     app.set_duration(duration)
+    app.set_project(project)
 
     # build and run
     app.build()

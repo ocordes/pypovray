@@ -3,7 +3,7 @@
 pypovlib/pypovapp.py
 
 written by: Oliver Cordes 2019-04-14
-changed by: Oliver Cordes 2019-04-18
+changed by: Oliver Cordes 2019-05-04
 
 """
 
@@ -21,11 +21,12 @@ PovApp_Animation = 2
 class PovApp(object):
     def __init__(self, **kwargs):
 
-        self._type       = PovApp_Unknown
-        self._filename   = None
-        self._directory  = None
-        self._has_rq     = False
-        self._rq_config  = None
+        self._type            = PovApp_Unknown
+        self._filename        = None
+        self._directory       = None
+        self._has_rq          = False
+        self._rq_config       = None
+        self._rq_project_name = None
 
         self._build_list = []
 
@@ -42,18 +43,22 @@ class PovApp(object):
                 self._has_rq = value
             elif key == 'directory':
                 self._directory = value
+            elif key == 'rq_project_name':
+                self._rq_project_name = value
 
 
         if self._type == PovApp_Image:
             if self._has_rq:
                 self._povfile = RQPovFile(filename=self._filename,
-                                            config=self._rq_config)
+                                            config=self._rq_config,
+                                            rq_project_name=self._rq_project_name)
             else:
                 self._povfile = PovFile(filename=self._filename)
         elif self._type == PovApp_Animation:
             if self._has_rq:
                 self._povfile = RQPovAnimation(directory=self._directory,
-                                                config=self._rq_config)
+                                                config=self._rq_config,
+                                                rq_project_name=self._rq_project_name)
             else:
                 self._povfile = PovAnimation(directory=self._directory)
 
@@ -131,3 +136,9 @@ class PovApp(object):
     def set_duration(self, duration):
         if self._type == PovApp_Animation:
             self._povfile.set_duration(duration)
+
+
+    def set_project(self, project):
+        if self._povfile is not None:
+            if self._has_rq:
+                self._povfile.set_project(project)

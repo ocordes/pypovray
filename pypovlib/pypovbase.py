@@ -187,11 +187,16 @@ class PovBasicObject( PovWriterObject ):
 
 
     # handle includes/declares/macros
-    def add_include( self, incfile ):
-        if incfile in self._includes:
-            pass
+    def add_include(self, incfile):
+        if incfile is None: return
+        if isinstance(incfile, (tuple, list)) == True:
+            for i in incfile:
+                self.add_include(i)
         else:
-            self._includes.append( incfile )
+            if incfile in self._includes:
+                pass
+            else:
+                self._includes.append(incfile)
 
 
     def add_declare( self, key, value ):

@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # wirtten by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2019-04-25
+# changed by: Oliver Cordes 2019-05-04
 
 import sys, os
 
@@ -689,8 +689,14 @@ class PovBaseList( object ):
     def add_include( self, incfile ):
         if incfile is None: return
 
-        if not incfile in self._includes:
-            self._includes.append( incfile )
+        if isinstance(incfile, (tuple, list)) == True:
+            for i in incfile:
+                self.add_include(i)
+        else:
+            if incfile in self._includes:
+                pass
+            else:
+                self._includes.append(incfile)
 
 
     def add_declare( self, key, value ):
@@ -1073,9 +1079,9 @@ class PovFile( PovBaseList ):
         # collect macros
         macro_defs = self.collect_macro_defs()
 
-
+        # collect extra files
         self.extra_files = self.collect_extra_files()
-        print(self.extra_files)
+
 
         # check for includes/macro_defs in declare objects
         for key in declares:

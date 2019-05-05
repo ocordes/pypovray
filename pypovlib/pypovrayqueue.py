@@ -61,6 +61,10 @@ class RQPovObj(object):
         self._height = height
 
 
+    def set_project(self, new_project):
+        self._rq_project_name = new_project
+
+
     def set_geometry(self, width, height):
         if width is not None:
             self._width = width
@@ -82,9 +86,9 @@ class RQPovObj(object):
 
     def _select_rq_project(self, project_type):
         self._rq_projects = Project.queryall(self._session)
-        if self._rq_project_name is not None:
+        if (self._rq_project_name is not None) and (self._rq_project_name != ''):
             for p in self._rq_projects:
-                if p.name ==  self._rq_projectname:
+                if p.name ==  self._rq_project_name:
                     return p
 
         # ask for selecting a project
