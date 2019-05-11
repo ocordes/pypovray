@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # written by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2019-04-25
+# changed by: Oliver Cordes 2019-05-07
 
 import sys, os
 
@@ -25,13 +25,72 @@ _fmt_key_vector = '{:s} <{:6f},{:6f},{:6f}>\n'
 
 # helper funtions
 
+rot_axis_X = np.array([1.,0.,0.])
+rot_axis_Y = np.array([0.,1.,0.])
+rot_axis_Z = np.array([0.,0.,1.])
 
-# def indent_str( nr ):
-#     return ''.join( _indent_char * _indent_nr * nr )
-#
-#
-# def write_indent( ffile, s, indent):
-#     ffile.write( '%s%s' % ( indent_str( indent ), s ) )
+def create_rotation_matrix(vector, angle):
+    angle = angle * np.pi / 180.
+    matrix = np.zeros(9).reshape((3,3))
+
+    u_x = vector[0]
+    u_y = vector[1]
+    u_z = vector[2]
+    cos_a = np.cos(angle)
+    sin_a = np.sin(angle)
+
+    matrix[0,0] = cos_a + u_x**2 * (1.-cos_a)
+    matrix[0,1] = u_x * u_y * (1.-cos_a) - u_z * sin_a
+    matrix[0,2] = u_x * u_z * (1.-cos_a) + u_y * sin_a
+    matrix[1,0] = u_y * u_x * (1.-cos_a) + u_z * sin_a
+    matrix[1,1] = cos_a + u_y**2 * (1.-cos_a)
+    matrix[1,2] = u_y * u_z * (1.-cos_a) - u_x * sin_a
+    matrix[2,0] = u_z * u_x * (1.-cos_a) - u_y * sin_a
+    matrix[2,1] = u_z * u_y * (1.-cos_a) + u_x * sin_a
+    matrix[2,2] = cos_a + u_z**2 * (1.-cos_a)
+
+    return Matrix3D(rotation=matrix)
+
+
+def get_rot_axes(x1, x2, y1, y2):
+    # first get the normal vector for both planes
+    x_n = np.cross(x1, x2)
+    y_n = np.cross(y1, y2)
+
+    test_dot = np.dot(x_n, y_n)
+    if np.isclose(test_dot, 1.):
+        rot_axis = -x_n
+        rot_axis = x1
+    elif np.isclose(test_dot, -1):
+        rot_axis = x1
+    else:
+        rot_axis = np.cross(x_n, y_n)
+
+    return rot_axis
+
+
+def angle_Z(angle):
+    angle = angle * np.pi / 180.
+    return Matrix3D(np.array([[np.cos(angle), -np.sin(angle), 0., 0.],
+                     [np.sin(angle), np.cos(angle), 0., 0.],
+                     [0., 0., 1., 0.],
+                     [0., 0., 0., 1.]]))
+
+
+def angle_Y(angle):
+    angle = angle * np.pi / 180.
+    return Matrix3D(np.array([[np.cos(angle), 0., np.sin(angle), 0.],
+                     [0., 1., 0., 0.],
+                     [-np.sin(angle), 0., np.cos(angle), 0.],
+                     [0., 0., 0., 1.]]))
+
+
+def angle_X(angle):
+    angle = angle * np.pi / 180.
+    return Matrix3D(np.array([[1., 0., 0., 0.],
+                     [0., np.cos(angle), -np.sin(angle), 0.],
+                     [0., np.sin(angle), np.cos(angle), 0.],
+                     [0., 0., 0., 1.]]))
 
 
 def convert2vector( val ):
@@ -160,6 +219,65 @@ class Point3D( object ):
 
     def __eq__( self, val ):
         return np.allclose( self.__xyz, val.xyz, atol=self.__atol, rtol=self.__rtol )
+
+
+class Matrix3D(object):
+    def __init__(self, value=None, rotation=None, translation=None):
+        self.reset()
+
+        if value is None:
+            if rotation is not None:
+                self._rotation = rotation
+            if translation is not None:
+                self.translate(translation)
+        else:
+            self._set_value(value)
+
+
+    def _set_value(self, val):
+        if isinstance(val, Matrix3D):
+            self._rotation = val._rotation
+            self._translation = val._translation
+        else:
+            full_matrix = convertarray2full_matrix(val)
+            self._rotation    = full_matrix[:9].reshape((3,3))
+            self._translation = full_matrix[9:]
+
+
+
+    @property
+    def rotation(self):
+        return self._rotation
+
+
+    @property
+    def translation(self):
+        return self._translation
+
+
+    def _zero(self):
+        return np.array([[1., 0., 0.],
+                         [0., 1., 0.],
+                         [0., 0., 1.]])
+
+
+    def reset(self):
+        self._rotation = self._zero()
+        self._translation = np.zeros(3)
+
+
+    def rotate(self, angle):
+        self._rotation = np.dot(self._rotation, angle)
+
+
+    def translate(self, translation):
+        translation = convertarray2vector(translation)
+        self._translation += translation
+
+
+    def __str__(self):
+        return ','.join([str(i) for i in np.append(self.rotation.flatten(), self.translation)])
+
 
 
 # Povray basic object

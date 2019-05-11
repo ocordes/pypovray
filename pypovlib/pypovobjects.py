@@ -224,18 +224,18 @@ class PovCSGObject( PovObject ):
             if len( val ) == 12:   # check if matrices list or
                                    # single matrix
                 try:
-                    m = convertarray2full_matrix( val[0] )
+                    m = Matrix3D(val[0])
                 except:
                     l = False
 
             if l:
                 for m in val:
-                    self.__full_matrix.append( convertarray2full_matrix( m ) )
+                    self.__full_matrix.append(Matrix3D(m))
             else:
-                self.__full_matrix.append( convertarray2full_matrix( val ) )
+                self.__full_matrix.append(Matrix3D(val))
 
         else:
-            self.__full_matrix.append( convertarray2full_matrix( val ) )
+            self.__full_matrix.append(Matrix3D(val))
 
 
     def full_matrix_list( self, val ):
@@ -377,9 +377,10 @@ class PovCSGObject( PovObject ):
 
     def _write_full_matrix( self, ffile, indent=0 ):
         for m in self.__full_matrix:
-            self._write_indent( ffile,
-                                'matrix <{},{},{},{},{},{},{},{},{},{},{},{}>\n'.format( *m ),
-                                indent )
+            self._write_indent(ffile, 'matrix <{}>\n'.format(m), indent)
+            #self._write_indent( ffile,
+            #                    'matrix <{},{},{},{},{},{},{},{},{},{},{},{}>\n'.format( *m ),
+            #                    indent )
 
 
     def _write_scale( self, ffile, indent=0 ):
