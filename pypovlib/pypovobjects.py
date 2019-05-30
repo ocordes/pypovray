@@ -187,14 +187,36 @@ class PovObject( PovBasicObject ):
 class PovCSGObject( PovObject ):
     def __init__( self, comment=None ):
         PovObject.__init__( self, comment=comment )
+        self.__rotation_matrix         = None
+        self.__rotate_before_translate = True
+        self.__pre_commands            = []
+        self.reset_attributes()
+
+    """
+    reset_attributes
+
+    resets all povray attributes
+    """
+    def reset_attributes(self):
         self.__macros                  = []
         self.__full_matrix             = []
         self.__rotate                  = []
-        self.__rotation_matrix         = None
-        self.__translate               = None
+        self.__translate               = []
         self.__scale                   = []
-        self.__rotate_before_translate = True
-        self.__pre_commands            = []
+
+    """
+    move_attributes
+
+    moves all povray attributes from an object to the calling
+    object
+    """
+    def move_attributes(self, obj):
+        self.__macros      = obj.__macros
+        self.__full_matrix = obj.__full_matrix
+        self.__rotate      = obj.__rotate
+        self.__translate   = obj.__translate
+        self.__scale       = obj.__scale
+        obj.reset_attributes()
 
 
     @property
@@ -309,7 +331,7 @@ class PovCSGObject( PovObject ):
     @translate.setter
     def translate( self, val ):
         translate = Point3D( val )
-        self.__translate = [ translate ]
+        self.__translate.append(translate)
         if ( self._lights is not None ):
             # do the translation also for bounded light objects
             for l in self._lights:
@@ -346,6 +368,10 @@ class PovCSGObject( PovObject ):
 
     @property
     def scale( self ):
+        if len(self.__scale) == 0:
+            return []
+
+        # combine all scalings
         sc = None
         for i in self.__scale:
             if sc is None:
@@ -889,7 +915,10 @@ class PovCSGUnion( PovCSGObjectList ):
 
     def write_pov( self, ffile, indent = 0 ):
         if len(  self._items ) == 0:
-            raise TypeError( 'Union structure needs at least one item to proceed!' )
+            print('Union structure needs at least one item to proceed!')
+            #raise TypeError('Union structure needs at least one item to proceed!')
+            self._write_indent( ffile, '//empty union', indent )
+            return
         PovCSGObjectList.write_pov( self, ffile, indent=indent )
         self._write_indent( ffile, 'union{\n', indent )
 
