@@ -78,6 +78,7 @@ def _copy_file( ffile, filename, comment ):
 
 
 class PovObject( PovBasicObject ):
+    _name = 'PovObject'
     def __init__( self, comment=None ):
         PovBasicObject.__init__( self, comment=comment )
         self._texture = None
@@ -136,7 +137,7 @@ class PovObject( PovBasicObject ):
 
 
     def do_statistics( self ):
-        pass
+        self.add_stat_count(self._name)
 
 
     def update_timeline( self, time_abs, time_delta, fnr ):
@@ -185,6 +186,7 @@ class PovObject( PovBasicObject ):
 
 
 class PovCSGObject( PovObject ):
+    _name = 'PovCSGObject'
     def __init__( self, comment=None ):
         PovObject.__init__( self, comment=comment )
         self.__rotation_matrix         = None
@@ -471,6 +473,7 @@ class PovCSGObject( PovObject ):
 
 
 class PovCSGBox( PovCSGObject ):
+    _name = 'Box'
     def __init__( self, xyz1, xyz2, comment=None):
         PovCSGObject.__init__( self,comment=comment )
         self._set_coords( Point3D( xyz1 ), Point3D( xyz2 ) )
@@ -489,11 +492,8 @@ class PovCSGBox( PovCSGObject ):
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        self.add_stat_count( 'Box' )
-
-
 class PovCSGBoxCenter( PovCSGBox ):
+    _name = 'BoxCenter'
     def __init__( self, xyz, dimension, comment=None ):
         PovCSGObject.__init__( self, comment=comment )
         txyz = Point3D( xyz )
@@ -503,6 +503,7 @@ class PovCSGBoxCenter( PovCSGBox ):
 
 
 class PovCSGSphere( PovCSGObject ):
+    _name = 'Sphere'
     def __init__( self, xyz, radius, comment=None ):
         PovCSGObject.__init__( self, comment=comment )
         self._xyz    = Point3D( xyz )
@@ -517,11 +518,8 @@ class PovCSGSphere( PovCSGObject ):
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        self.add_stat_count( 'Sphere' )
-
-
 class PovCSGCylinder( PovCSGObject ):
+    _name = 'Cylinder'
     def __init__( self, xyz1, xyz2, radius, comment=None ):
         PovCSGObject.__init__( self, comment=comment )
         self._xyz1   = Point3D( xyz1 )
@@ -537,11 +535,8 @@ class PovCSGCylinder( PovCSGObject ):
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        self.add_stat_count( 'Cylinder' )
-
-
 class PovCSGTorus( PovCSGObject ):
+    _name = 'Torus'
     def __init__( self, radius_major, radius_minor, comment=None ):
         PovCSGObject.__init__( self, comment=comment )
         self._radius_major = radius_major
@@ -557,11 +552,8 @@ class PovCSGTorus( PovCSGObject ):
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        self.add_stat_count( 'Torus' )
-
-
 class PovCSGCone( PovCSGObject ):
+    _name = 'Cone'
     def __init__( self, xyz1, radius1, xyz2, radius2, comment=None ):
         PovCSGObject.__init__( self, comment=comment )
         self._xyz1   = Point3D( xyz1 )
@@ -581,11 +573,8 @@ class PovCSGCone( PovCSGObject ):
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        self.add_stat_count( 'Cone' )
-
-
 class PovCSGPrism( PovCSGObject ):
+    _name = 'Prism'
     def __init__( self, y1, y2, points, comment=None, closing_point = False ):
         PovCSGObject.__init__( self, comment=comment )
         self._y1            = y1
@@ -625,6 +614,7 @@ class PovCSGPrism( PovCSGObject ):
             self._write_indent( ffile, '<%f,%f>' % ( i[0], i[1] ), indent+1 )
 
         if self._closing_point == False:
+            i = self._points[0]
             ffile.write( ',\n' )
             self._write_indent( ffile, '<%f,%f>' % ( i[0], i[1] ), indent+1 )
         ffile.write( '\n' )
@@ -632,11 +622,8 @@ class PovCSGPrism( PovCSGObject ):
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        self.add_stat_count( 'Prism' )
-
-
 class PovCSGMacro( PovCSGObject ):
+    _name = 'Macro'
     def __init__( self, comment=None, macrocmd=None ):
         PovCSGObject.__init__( self, comment=comment )
         self._macrocmd = macrocmd
@@ -650,11 +637,8 @@ class PovCSGMacro( PovCSGObject ):
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        self.add_stat_count( 'Macro' )
-
-
 class PovDisc( PovCSGObject ):
+    _name = 'Dics'
     def __init__( self, xyz, normal, radius, hole_radius=None, comment=None ):
         PovCSGObject.__init__( self, comment=comment )
         self._xyz         = Point3D( xyz )
@@ -680,11 +664,8 @@ class PovDisc( PovCSGObject ):
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        self.add_stat_count( 'Disc' )
-
-
 class PovSkySphere( PovCSGObject ):
+    _name = 'SkySphere'
     def __init__( self, comment=None ):
         PovCSGObject.__init__( self, comment=comment )
 
@@ -694,10 +675,6 @@ class PovSkySphere( PovCSGObject ):
         self._write_indent( ffile, 'sky_sphere{\n', indent )
         self._write_attributes( ffile, indent+1 )
         self._write_indent( ffile, '}\n', indent )
-
-
-    def do_statistics( self ):
-        self.add_stat_count( 'SkySphere' )
 
 
 # list classes
@@ -836,21 +813,10 @@ class PovBaseList( object ):
             i.do_statistics()
 
 
-# generator Object for Lists and PovObhects
-
-class PovObjectList( PovBaseList, PovObject ):
-    def __init__( self, comment=None ):
-        PovBaseList.__init__( self )
-        PovObject.__init__( self, comment=comment )
-
-
-    def _verify_object( self, new_obj ):
-        if isinstance( new_obj, PovObject ) == False:
-            raise TypeError( 'new_obj must be PovObject or a derivative of PovObject' )
-        return True
-
+# generator Object for Lists and PovObjects
 
 class PovCSGObjectList( PovBaseList, PovCSGObject ):
+    _name = 'PovCSGObjectList'
     _D = 0.001
     def __init__( self, comment=None ):
         PovBaseList.__init__( self )
@@ -863,6 +829,16 @@ class PovCSGObjectList( PovBaseList, PovCSGObject ):
 
     def write_pov( self, ffile, indent = 0 ):
         PovCSGObject.write_pov( self, ffile, indent=indent )
+
+
+    def _write_items(self, ffile, indent=0):
+        nr = 1
+        for i in self._items:
+            self._write_indent(ffile,
+                               '// %s Item #%i\n' % (self._name, nr),
+                               indent=indent)
+            i.write_pov(ffile, indent=indent)
+            nr += 1
 
 
     def write_lights( self, ffile, indent=0 ):
@@ -888,7 +864,13 @@ class PovCSGObjectList( PovBaseList, PovCSGObject ):
             i.update_frame( framenr )
 
 
+    def do_statistics( self ):
+        PovBaseList.do_statistics(self)
+        PovCSGObject.do_statistics(self)
+
+
 class PovCSGContainer( PovCSGObjectList ):
+    _name = 'Container'
     def __init__( self, comment=None ):
         PovCSGObjectList.__init__( self, comment=comment )
 
@@ -904,12 +886,8 @@ class PovCSGContainer( PovCSGObjectList ):
             nr += 1
 
 
-    def do_statistics( self ):
-        PovBaseList.do_statistics( self )
-        self.add_stat_count( 'Container' )
-
-
 class PovCSGUnion( PovCSGObjectList ):
+    _name = 'Union'
     def __init__( self, comment=None ):
         PovCSGObjectList.__init__( self, comment=comment )
 
@@ -922,24 +900,13 @@ class PovCSGUnion( PovCSGObjectList ):
         PovCSGObjectList.write_pov( self, ffile, indent=indent )
         self._write_indent( ffile, 'union{\n', indent )
 
-        nr = 1
-        for i in self._items:
-            self._write_indent( ffile,
-                                '// Union Item #%i\n' % nr,
-                                indent=indent+1 )
-            i.write_pov( ffile, indent=indent+1 )
-            nr += 1
-
+        self._write_items(ffile, indent=indent+1)
         self._write_attributes( ffile, indent+1 )
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        PovBaseList.do_statistics( self )
-        self.add_stat_count( 'Union' )
-
-
 class PovCSGMerge( PovCSGObjectList ):
+    _name = 'Merge'
     def __init__( self, comment=None ):
         PovCSGObjectList.__init__( self, comment=comment )
 
@@ -949,24 +916,13 @@ class PovCSGMerge( PovCSGObjectList ):
         PovCSGObjectList.write_pov( self, ffile, indent=indent )
         self._write_indent( ffile, 'merge{\n', indent )
 
-        nr = 1
-        for i in self._items:
-            self._write_indent( ffile,
-                                '// Merge Item #%i\n' % nr,
-                                indent=indent+1 )
-            i.write_pov( ffile, indent=indent+1 )
-            nr += 1
-
+        self._write_items(ffile, indent=indent+1)
         self._write_attributes( ffile, indent+1 )
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        PovBaseList.do_statistics( self )
-        self.add_stat_count( 'Merge' )
-
-
 class PovCSGDifference( PovCSGObjectList ):
+    _name = 'Difference'
     def __init__( self, comment=None ):
         PovCSGObjectList.__init__( self, comment=comment )
 
@@ -977,25 +933,14 @@ class PovCSGDifference( PovCSGObjectList ):
         PovCSGObjectList.write_pov( self, ffile, indent=indent )
         self._write_indent( ffile, 'difference{\n', indent )
 
-        nr = 1
-        for i in self._items:
-            self._write_indent( ffile,
-                                '// Difference Item #%i\n' % nr,
-                                indent=indent+1 )
-            i.write_pov( ffile, indent=indent+1 )
-            nr += 1
-
+        self._write_items(ffile, indent=indent+1)
         self._write_attributes( ffile, indent+1 )
         self._write_indent( ffile, '}\n', indent )
 
 
-    def do_statistics( self ):
-        PovBaseList.do_statistics( self )
-        self.add_stat_count( 'Difference' )
-
-
 # height fields
 class PovHeightField( PovCSGObject ):
+    _name = 'HeightField'
     def __init__( self, image_name, smooth=False, comment=None):
         PovCSGObject.__init__( self,comment=comment )
         self._image_name = image_name
@@ -1012,10 +957,6 @@ class PovHeightField( PovCSGObject ):
 
         self._write_attributes( ffile, indent+1 )
         self._write_indent( ffile, '}\n', indent )
-
-
-    def do_statistics( self ):
-        self.add_stat_count( 'HeightField' )
 
 
 # a simple PovFile generator
