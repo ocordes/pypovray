@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # written by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2019-05-07
+# changed by: Oliver Cordes 2019-08-16
 
 import sys, os
 
@@ -407,6 +407,185 @@ class PovBasicObject( PovWriterObject ):
             isinstance( val,float ) or isinstance( val, str ) ):
             return True
         raise TypeError( 'val is not an int or a float or a string')
+
+
+
+class PovGeometry(object):
+    def __init__(self):
+        self.__rotate_before_translate = True
+
+        self.__full_matrix             = []
+        self.__rotate                  = []
+        self.__translate               = []
+        self.__scale                   = []
+
+
+    def set_rotate_before_translate(self, val):
+        self.__rotate_before_translate = val
+
+
+    @property
+    def full_matrix(self):
+        return self.__full_matrix
+
+
+    @full_matrix.setter
+    def full_matrix(self, val):
+        if val is None:
+            self.__full_matrix = []
+        elif isinstance(val, (list, tuple)):
+            l = True
+            if len( val ) == 12:   # check if matrices list or
+                                   # single matrix
+                try:
+                    m = Matrix3D(val[0])
+                except:
+                    l = False
+
+            if l:
+                for m in val:
+                    self.__full_matrix.append(Matrix3D(m))
+            else:
+                self.__full_matrix.append(Matrix3D(val))
+
+        else:
+            self.__full_matrix.append(Matrix3D(val))
+
+
+    def full_matrix_list(self, val):
+        if isinstance(val, (list, tuple)):
+            for m in val:
+                self.__full_matrix.append(convertarray2full_matrix(m))
+
+
+    @property
+    def rotate(self):
+        return self.__rotate
+
+
+    @rotate.setter
+    def rotate(self, new_rotate):
+        if new_rotate is None:
+            self.__rotate = []
+        else:
+            rotate = Point3D(new_rotate)
+            self.__rotate.append(rotate)
+
+            self.update_rotate(rotate)
+
+
+    def set_rotation_matrix(self, new_matrix):
+        self.__rotation_matrix = convertarray2matrix(new_matrix)
+
+        self.update_rotation_matrix(self.__rotation_matrix)
+
+
+    @property
+    def translate(self):
+        t = Point3D([0., 0., 0.])
+        for i in self.__translate:
+            t += i
+
+        return t
+
+
+    @translate.setter
+    def translate(self, val):
+        translate = Point3D( val )
+        self.__translate.append(translate)
+
+        self.update_translate(translate)
+
+
+    @property
+    def scale(self):
+        if len(self.__scale) == 0:
+            return []
+
+        # combine all scalings
+        sc = None
+        for i in self.__scale:
+            if sc is None:
+                sc = i
+            else:
+                sc *= i
+
+        return sc
+
+
+    @scale.setter
+    def scale(self, new_scale):
+        self.__scale.append(Point3D(new_scale))
+
+        self.update_scale(new_scale)
+
+
+    def update_rotate(self, rotate):
+        pass
+
+
+    def update_rotation_matrix(self, rotation_matrix):
+        pass
+
+
+    def update_translate(self, translate):
+        pass
+
+
+    def update_scale(self, scale):
+        pass
+
+
+    def _write_full_matrix(self, ffile, indent=0):
+        for m in self.__full_matrix:
+            self._write_indent(ffile, 'matrix <{}>\n'.format(m), indent)
+
+
+    def _write_scale(self, ffile, indent=0):
+        if len(self.__scale) == 0: return
+        for sc in self.__scale:
+            self._write_indent(ffile, 'scale %s\n' % sc, indent)
+
+
+    def _write_translate(self, ffile, indent=0):
+        if self.__translate is None: return
+        for t in self.__translate:
+           self._write_indent(ffile, 'translate %s\n' % t, indent)
+
+
+    def _write_rotate(self, ffile, indent=0):
+        for r in self.__rotate:
+           self._write_indent(ffile, 'rotate %s\n' % r, indent)
+
+
+    def _write_rotation_matrix(self, ffile, indent=0):
+        if self.__rotation_matrix is None: return
+        self._write_indent( ffile,
+             'matrix <%f,%f,%f,%f,%f,%f,%f,%f,%f,0,0,0>\n' % (self.__rotation_matrix[0][0],
+                       self.__rotation_matrix[0][1],
+                       self.__rotation_matrix[0][2],
+                       self.__rotation_matrix[1][0],
+                       self.__rotation_matrix[1][1],
+                       self.__rotation_matrix[1][2],
+                       self.__rotation_matrix[2][0],
+                       self.__rotation_matrix[2][1],
+                       self.__rotation_matrix[2][2]),
+                       indent)
+
+
+    def _write_geometrics(self, ffile, indent=0):
+        self._write_full_matrix(ffile, indent=indent)
+        self._write_scale(ffile, indent=indent)
+        if self.__rotate_before_translate:
+            self._write_rotate(ffile, indent=indent)
+            self._write_rotation_matrix(ffile, indent=indent)
+            self._write_translate(ffile, indent=indent)
+        else:
+            self._write_translate(ffile, indent=indent)
+            self._write_rotate(ffile, indent=indent)
+            self._write_rotation_matrix(ffile, indent=indent)
+
+
 
 
 if __name__== "__main__":

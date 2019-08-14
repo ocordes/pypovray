@@ -2,7 +2,7 @@
 #
 #
 # written by: Oliver Cordes 2015-04-10
-# changed by: Oliver Cordes 2016-12-16
+# changed by: Oliver Cordes 2019-08-14
 
 # povray syntax for finish
 #ambient COLOR | diffuse Amount | brilliance Amount |
@@ -12,7 +12,8 @@
 #    reflection { Color_Reflecting_Min [REFLECTION_ITEMS...] }|
 #    irid {
 
-from  pypovlib.pypovbase import PovBasicObject, convert2vector, convertarray2vector
+from  pypovlib.pypovbase import PovBasicObject, PovGeometry, \
+                                convert2vector, convertarray2vector
 
 
 _fmt_key_float = '{:s} {:6f}\n'
@@ -297,7 +298,7 @@ class PovPigment( PovBasicObject ):
         self._write_indent( ffile, '}\n', indent=indent )
 
 
-class PovTexture( PovBasicObject ):
+class PovTexture(PovBasicObject, PovGeometry):
     def __init__( self, comment=None, name=None, finish=None, normal=None, pigment=None ):
         PovBasicObject.__init__( self, comment=comment )
 
