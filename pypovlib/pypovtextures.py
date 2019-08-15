@@ -212,71 +212,34 @@ class PovNormal( PovBasicObject ):
         self._write_indent( ffile, '}\n', indent=indent )
 
 
-class PovPigment( PovBasicObject ):
-    def __init__( self,
-                  comment   = None,
-                  name      = None,
-                  color     = None,
-                  rgb       = None,
-                  image_map = None,
-                  color_map = None,
-                  gradient  = None ):
-        PovBasicObject.__init__( self, comment )
+class PovPigmentPattern(PovBasicObject):
+    def __init__(self, comment='Pattern'):
+        PovBasicObject.__init__(self, comment=comment)
 
+
+class PovPatternPavement(PovPigmentPattern):
+    def __init__(self, comment='Pavement pattern'):
+        PovPigmentPattern.__init__(self, comment=comment)
+
+
+class PovPigment(PovBasicObject, PovGeometry):
+    def __init__(self,
+                 comment   = None,
+                 pattern   = None,
+                 name      = None,
+                 color     = None,
+                 rgb       = None,
+                 image_map = None,
+                 color_map = None,
+                 gradient  = None ):
+        PovBasicObject.__init__(self, comment)
+
+        self._pattern   = pattern
         self._color     = color
         self._rgb       = rgb
         self._image_map = image_map
         self._color_map = color_map
         self._gradient  = gradient
-
-        self._translate               = None
-        self._rotate                  = None
-        self._scale                   = None
-        self._rotate_before_translate = True
-
-
-    def set_rotate( self, new_rotate ):
-        self._rotate = convertarray2vector( new_rotate )
-
-    def set_translate( self, new_translate ):
-        self._translate = convertarray2vector( new_translate )
-
-    def set_rotate_before_translate( self, val ):
-        self._rotate_before_translate = val
-
-    def set_scale( self, new_scale ):
-        self._scale = convert2vector( new_scale )
-        #print self._scale
-
-    def _write_scale( self, ffile, indent=0 ):
-        if self._scale is None: return
-        self._write_indent( ffile, 'scale <%f,%f,%f>\n' % ( self._scale[0],
-                                                     self._scale[1],
-                                                     self._scale[2] ),
-                                                     indent )
-
-    def _write_translate( self, ffile, indent=0 ):
-        if self._translate is None: return
-        self._write_indent( ffile, 'translate <%f,%f,%f>\n' % ( self._translate[0],
-                                                                self._translate[1],
-                                                                self._translate[2] ),
-                                                                indent )
-
-    def _write_rotate( self, ffile, indent=0 ):
-        if self._rotate is None: return
-        self._write_indent( ffile, 'rotate <%f,%f,%f>\n' % ( self._rotate[0],
-                                                             self._rotate[1],
-                                                             self._rotate[2] ),
-                                                             indent )
-
-    def _write_geometrics( self, ffile, indent=0 ):
-        self._write_scale( ffile, indent=indent )
-        if self._rotate_before_translate:
-            self._write_rotate( ffile, indent=indent )
-            self._write_translate( ffile, indent=indent )
-        else:
-            self._write_translate( ffile, indent=indent )
-            self._write_rotate( ffile, indent=indent )
 
 
     def write_pov( self, ffile, indent ):
