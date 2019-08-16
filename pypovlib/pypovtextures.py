@@ -217,9 +217,45 @@ class PovPigmentPattern(PovBasicObject):
         PovBasicObject.__init__(self, comment=comment)
 
 
-class PovPatternPavement(PovPigmentPattern):
+class PovPatternPavement(PovPigmentPattern, PovGeometry):
     def __init__(self, comment='Pavement pattern'):
         PovPigmentPattern.__init__(self, comment=comment)
+
+        """
+        number_of_sides SIDES_VALUE | number_of_tiles TILES_VALUE | pattern PATTERN_VALUE |
+        exterior EXTERIOR_VALUE | interior INTERIOR_VALUE | form FORM_VALUE |
+        """
+        self.number_of_sides = None
+        self.number_of_tiles = None
+        self.pattern = None
+        self.exterior = None
+        self.interior = None
+        self.form = None
+
+
+    def write_pov(self, ffile, indent=0):
+        self._write_indent(ffile, 'pavement\n', indent=indent)
+        if self.number_of_sides is not None:
+            self._write_indent(ffile,
+                               'number_of_sides {}\n'.format(self.number_of_sides),
+                               indent=indent+1)
+        if self.number_of_tiles is not None:
+            self._write_indent(ffile,
+                               'number_of_tiles {}\n'.format(self.number_of_tiles),
+                               indent=indent+1)
+        if self.pattern is not None:
+            self._write_indent(ffile, 'pattern {}\n'.format(self.pattern),
+                               indent=indent+1)
+        if self.exterior is not None:
+            self._write_indent(ffile, 'exterior {}\n'.format(self.exterior),
+                               indent=indent+1)
+        if self.interior is not None:
+            self._write_indent(ffile, 'interior {}\n'.format(self.interior),
+                               indent=indent+1)
+        if self.form is not None:
+            self._write_indent(ffile, 'form {}\n'.format(self.form),
+                               indent=indent+1)
+        #self._write_geometrics(ffile, indent=indent+1)
 
 
 class PovPigment(PovBasicObject, PovGeometry):
@@ -244,6 +280,8 @@ class PovPigment(PovBasicObject, PovGeometry):
 
     def write_pov( self, ffile, indent ):
         self._write_indent( ffile, 'pigment{\n', indent=indent )
+        if (self._pattern is not None):
+            self._pattern.write_pov(ffile, indent=indent+1)
         if ( self._color is not None ):
             self._write_indent( ffile, 'color %s\n' % self._color , indent+1 )
         elif ( self._rgb is not None ):
