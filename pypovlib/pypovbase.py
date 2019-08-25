@@ -418,6 +418,7 @@ class PovGeometry(object):
         self.__rotate                  = []
         self.__translate               = []
         self.__scale                   = []
+        self.__rotation_matrix         = None
 
 
     def set_rotate_before_translate(self, val):
@@ -499,23 +500,20 @@ class PovGeometry(object):
 
     @property
     def scale(self):
-        if len(self.__scale) == 0:
-            return []
-
         # combine all scalings
-        sc = None
+        sc = np.array([1., 1., 1.])
         for i in self.__scale:
-            if sc is None:
-                sc = i
-            else:
-                sc *= i
+            sc *= i
 
         return sc
 
 
     @scale.setter
     def scale(self, new_scale):
-        self.__scale.append(Point3D(new_scale))
+        if isinstance(new_scale, (int, float)):
+            self.__scale.append(new_scale)
+        else:
+            self.__scale.append(Point3D(new_scale))
 
         self.update_scale(new_scale)
 
