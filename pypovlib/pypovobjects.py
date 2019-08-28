@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # wirtten by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2019-05-04
+# changed by: Oliver Cordes 2019-08-28
 
 import sys, os
 
@@ -18,7 +18,7 @@ from pypovlib.pypovtextures import *
 # constants
 
 __libname__ = 'pypovlib'
-__version__ = '0.1.15'
+__version__ = '0.1.16'
 __author__ =  'Oliver Cordes (C) 2015-2019'
 
 
@@ -957,6 +957,75 @@ class PovHeightField( PovCSGObject ):
 
         self._write_attributes( ffile, indent+1 )
         self._write_indent( ffile, '}\n', indent )
+
+
+# mesh2 objects
+class PovMesh2(PovCSGObject):
+    _name = 'Mesh2'
+    def __init__(self, vertex_vectors=None,
+                       normal_vectors=None,
+                       uv_vectors=None,
+                       face_indices=None,
+                       normal_indices=None,
+                       uv_indices=None,
+                       comment=None
+                        ):
+        PovCSGObject.__init__(self, comment=comment)
+        self.vertex_vectors = vertex_vectors
+        self.normal_vectors = normal_vectors
+        self.uv_vectors = uv_vectors
+        self.face_indices = face_indices
+        self.normal_indices = normal_indices
+        self.uv_indices = uv_indices
+
+
+    def _write_vector_list_int(self, ffile, vlist, indent):
+        self._write_indent(ffile, '%i,\n' % vlist.shape[0], indent)
+        for i in vlist[:-1]:
+            self._write_indent(ffile, '<%i,%i,%i>,\n' % (i[0], i[1], i[2]), indent)
+        i = vlist[-1]
+        self._write_indent(ffile, '<%i,%i,%i>\n' % (i[0], i[1], i[2]), indent)
+
+
+    def _write_vector_list_float(self, ffile, vlist, indent):
+        self._write_indent(ffile, '%i,\n' % vlist.shape[0], indent)
+        for i in vlist[:-1]:
+            self._write_indent(ffile, '<%f,%f,%f>,\n' % (i[0], i[1], i[2]), indent)
+        i = vlist[-1]
+        self._write_indent(ffile, '<%f,%f,%f>\n' % (i[0], i[1], i[2]), indent)
+
+
+    def write_pov(self, ffile, indent=0):
+        PovCSGObject.write_pov(self, ffile, indent)
+        self._write_indent(ffile, 'mesh2{\n', indent)
+        if self.vertex_vectors is not None:
+            self._write_indent(ffile, 'vertex_vectors\n', indent+1)
+            self._write_indent(ffile, '{\n', indent+1)
+            self._write_vector_list_float(ffile, self.vertex_vectors, indent+2)
+            self._write_indent(ffile, '}\n', indent+1)
+
+        if self.normal_vectors is not None:
+            self._write_indent(ffile, 'normal_vectors\n', indent+1)
+            self._write_indent(ffile, '{\n', indent+1)
+            self._write_vector_list_float(ffile, self.normal_vectors, indent+2)
+            self._write_indent(ffile, '}\n', indent+1)
+
+        if self.uv_vectors is not None:
+            self._write_indent(ffile, 'uv_vectors\n', indent+1)
+            self._write_indent(ffile, '{\n', indent+1)
+            self._write_vector_list_float(ffile, self.normal_vectors, indent+2)
+            self._write_indent(ffile, '}\n', indent+1)
+
+        if self.face_indices is not None:
+            self._write_indent(ffile, 'face_indices\n', indent+1)
+            self._write_indent(ffile, '{\n', indent+1)
+            self._write_vector_list_int(ffile, self.face_indices, indent+2)
+            self._write_indent(ffile, '}\n', indent+1)
+
+
+        self._write_attributes(ffile, indent+1)
+        self._write_indent(ffile, '}\n', indent)
+
 
 
 # a simple PovFile generator
