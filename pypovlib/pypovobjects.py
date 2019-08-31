@@ -895,7 +895,7 @@ class PovCSGUnion( PovCSGObjectList ):
         if len(  self._items ) == 0:
             print('Union structure needs at least one item to proceed!')
             #raise TypeError('Union structure needs at least one item to proceed!')
-            self._write_indent( ffile, '//empty union', indent )
+            self._write_indent( ffile, '//empty union\n', indent )
             return
         PovCSGObjectList.write_pov( self, ffile, indent=indent )
         self._write_indent( ffile, 'union{\n', indent )

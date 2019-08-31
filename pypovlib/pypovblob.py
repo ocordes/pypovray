@@ -31,11 +31,11 @@ class PovBlob(PovCSGObjectList):
               ' A none blob object should be added. Object will be ignored!')
         return False
 
-    def write_pov( self, ffile, indent = 0 ):
-        if len(  self._items ) == 0:
+    def write_pov(self, ffile, indent = 0):
+        if len(self._items ) == 0:
             print('Blob structure needs at least one item to proceed!')
             #raise TypeError('Union structure needs at least one item to proceed
-            self._write_indent(ffile, '//empty blob', indent)
+            self._write_indent(ffile, '//empty blob\n', indent)
             return
         PovCSGObjectList.write_pov(self, ffile, indent=indent)
         self._write_indent(ffile, 'blob{\n', indent)
