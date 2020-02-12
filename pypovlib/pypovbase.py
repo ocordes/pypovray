@@ -142,39 +142,57 @@ class Point3D( object ):
         self.__atol = atol
         self.__rtol = rtol
 
+
+    def copy(self):
+        return Point3D(self.__xyz, atol=self.__atol, rtol=self.__rtol)
+
+
     @property
     def xyz( self ):
         return self.__xyz
+
 
     @property
     def width( self ):
         return self.__xyz[0]
 
+
     @property
     def height( self ):
         return self.__xyz[1]
+
 
     @property
     def length( self ):
         return self.__xyz[2]
 
+
     @width.setter
     def width( self, val ):
         self.__xyz[0] = val
+
 
     @height.setter
     def height( self, val ):
         self.__xyz[1] = val
 
+
     @length.setter
     def length( self, val ):
         self.__xyz[2] = val
 
+
     def __getitem__( self, key ):
         return self.__xyz[key]
 
+
     def __str__( self ):
         return '<{:6f},{:6f},{:6f}>'.format( self.__xyz[0], self.__xyz[1], self.__xyz[2] )
+
+
+    def __repr__(self):
+        return 'Point3D([{},{},{}])'.format(self.__xyz[0], self.__xyz[1], self.__xyz[2])
+
 
     def __add__( self, val ):
         if isinstance( val, Point3D):
@@ -277,6 +295,13 @@ class Matrix3D(object):
 
     def __str__(self):
         return ','.join([str(i) for i in np.append(self.rotation.flatten(), self.translation)])
+
+
+    def __mul__(self, val):
+        if isinstance(val, Point3D):
+            return Point3D(np.dot(self.rotation, val.xyz) + self.translation)
+        else:
+            return val.copy()
 
 
 

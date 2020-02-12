@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # wirtten by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2019-08-28
+# changed by: Oliver Cordes 2020-02-12
 
 import sys, os
 
@@ -18,8 +18,8 @@ from pypovlib.pypovtextures import *
 # constants
 
 __libname__ = 'pypovlib'
-__version__ = '0.1.16'
-__author__ =  'Oliver Cordes (C) 2015-2019'
+__version__ = '0.1.20'
+__author__ =  'Oliver Cordes (C) 2015-2020'
 
 
 # variables
@@ -81,6 +81,10 @@ class PovObject( PovBasicObject ):
     _name = 'PovObject'
     def __init__( self, comment=None ):
         PovBasicObject.__init__( self, comment=comment )
+        # all objects are active by default
+        self.hidden  = False
+
+
         self._texture = None
 
         self._lights = None
@@ -834,10 +838,11 @@ class PovCSGObjectList( PovBaseList, PovCSGObject ):
     def _write_items(self, ffile, indent=0):
         nr = 1
         for i in self._items:
-            self._write_indent(ffile,
-                               '// %s Item #%i\n' % (self._name, nr),
-                               indent=indent)
-            i.write_pov(ffile, indent=indent)
+            if i.hidden == False:
+                self._write_indent(ffile,
+                                   '// %s Item #%i\n' % (self._name, nr),
+                                   indent=indent)
+                i.write_pov(ffile, indent=indent)
             nr += 1
 
 
@@ -886,39 +891,39 @@ class PovCSGContainer( PovCSGObjectList ):
             nr += 1
 
 
-class PovCSGUnion( PovCSGObjectList ):
+class PovCSGUnion(PovCSGObjectList):
     _name = 'Union'
-    def __init__( self, comment=None ):
-        PovCSGObjectList.__init__( self, comment=comment )
+    def __init__(self, comment=None):
+        PovCSGObjectList.__init__(self, comment=comment)
 
-    def write_pov( self, ffile, indent = 0 ):
-        if len(  self._items ) == 0:
+    def write_pov(self, ffile, indent = 0):
+        if len(self._items) == 0:
             print('Union structure needs at least one item to proceed!')
             #raise TypeError('Union structure needs at least one item to proceed!')
-            self._write_indent( ffile, '//empty union\n', indent )
+            self._write_indent(ffile, '//empty union\n', indent)
             return
-        PovCSGObjectList.write_pov( self, ffile, indent=indent )
-        self._write_indent( ffile, 'union{\n', indent )
+        PovCSGObjectList.write_pov(self, ffile, indent=indent)
+        self._write_indent(ffile, 'union{\n', indent)
 
         self._write_items(ffile, indent=indent+1)
-        self._write_attributes( ffile, indent+1 )
-        self._write_indent( ffile, '}\n', indent )
+        self._write_attributes(ffile, indent+1)
+        self._write_indent(ffile, '}\n', indent)
 
 
 class PovCSGMerge( PovCSGObjectList ):
     _name = 'Merge'
-    def __init__( self, comment=None ):
-        PovCSGObjectList.__init__( self, comment=comment )
+    def __init__(self, comment=None):
+        PovCSGObjectList.__init__(self, comment=comment)
 
-    def write_pov( self, ffile, indent = 0 ):
-        if len(  self._items ) == 0:
-            raise TypeError( 'Merge structure needs at least one item to proceed!' )
-        PovCSGObjectList.write_pov( self, ffile, indent=indent )
-        self._write_indent( ffile, 'merge{\n', indent )
+    def write_pov(self, ffile, indent = 0):
+        if len(self._items) == 0:
+            raise TypeError('Merge structure needs at least one item to proceed!')
+        PovCSGObjectList.write_pov(self, ffile, indent=indent)
+        self._write_indent(ffile, 'merge{\n', indent)
 
         self._write_items(ffile, indent=indent+1)
-        self._write_attributes( ffile, indent+1 )
-        self._write_indent( ffile, '}\n', indent )
+        self._write_attributes(ffile, indent+1)
+        self._write_indent(ffile, '}\n', indent)
 
 
 class PovCSGDifference( PovCSGObjectList ):
@@ -1171,7 +1176,8 @@ class PovFile( PovBaseList ):
 
         # write objects
         for i in self._items:
-            i.write_pov( f, indent=0 )
+            if i.hidden == False:
+                i.write_pov( f, indent=0 )
         f.write( '\n' )
 
         # write ligths
