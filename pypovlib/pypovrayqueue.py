@@ -160,7 +160,13 @@ class RQPovObj(object):
         listoffiles.append(filename)
         listoffiles.append(self._create_master_ini(filename))
 
-        listoffiles += self.extra_files
+        # extra_files are not intrinsic for this class
+        if hasattr(self, 'extra_files'):
+            listoffiles += self.extra_files
+
+        print('Creating image files:')
+        for i in listoffiles:
+            print('  {} ...'.format(i))
 
         self._create_image_archive(tempfile, listoffiles)
 

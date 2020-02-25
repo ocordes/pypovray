@@ -122,6 +122,21 @@ class PovApp(object):
             self._povfile.add_include(incfile)
 
 
+    def add_declare(self, key, value):
+        if self._povfile is not None:
+            self._povfile.add_declare(key, value)
+
+
+    def add_extra_file(self, files):
+        if self._povfile is not None:
+            self._povfile.add_extra_file(files)
+
+
+    def set_lights(self, lights):
+        if self._povfile is not None:
+            self._povfile.set_lights(lights)
+
+
     def set_geometry(self, width, height):
         if self._type == PovApp_Image:
             if self._has_rq:

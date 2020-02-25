@@ -722,6 +722,19 @@ class PovBaseList( object ):
             self._macro_def.append( macrodef )
 
 
+    def add_extra_file(self, efile):
+        if (isinstance(efile, (tuple, list)) == True):
+            for i in efile:
+                self.add_extra_file(i)
+        else:
+            if os.access(efile, os.R_OK):
+                if efile not in self._extra_files:
+                    self._extra_files.append(efile)
+            else:
+                print('WARNING: File \'%s\' not found!' % efile)
+
+
+
     def collect_includes( self ):
         includes = self._includes
         for i in self._items:
