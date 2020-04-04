@@ -3,7 +3,7 @@
 pypovlib/pypovapp.py
 
 written by: Oliver Cordes 2019-04-14
-changed by: Oliver Cordes 2019-05-11
+changed by: Oliver Cordes 2020-04-04
 
 """
 
@@ -162,3 +162,9 @@ class PovApp(object):
         if self._povfile is not None:
             if self._has_rq:
                 self._povfile.set_project(project)
+
+
+    def set_add_args(self, args):
+        if self._povfile is not None:
+            if self._has_rq:
+                self._povfile.set_add_args(args)

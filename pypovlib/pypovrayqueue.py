@@ -3,7 +3,7 @@
 pypovlib/pypovrayqueue.py
 
 written by: Oliver Cordes 2019-03-04
-changed by: Oliver Cordes 2019-04-21
+changed by: Oliver Cordes 2020-04-04
 
 """
 
@@ -60,6 +60,8 @@ class RQPovObj(object):
         self._width = width
         self._height = height
 
+        self._add_args = None
+
 
     def set_project(self, new_project):
         self._rq_project_name = new_project
@@ -70,6 +72,10 @@ class RQPovObj(object):
             self._width = width
         if height is not None:
             self._height = height
+
+
+    def set_add_args(self, args):
+        self._add_args = args
 
 
     def _rq_login(self):
@@ -141,6 +147,9 @@ class RQPovObj(object):
                  'height': self._height,
                  'outfile': outname,
                  'logfile': logfile }
+
+        if self._add_args is not None:
+            data['args'] = self._add_args
 
         config = configparser.ConfigParser()
         config['DEFAULT'] = data
