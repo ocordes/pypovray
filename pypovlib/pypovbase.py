@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # written by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2019-08-16
+# changed by: Oliver Cordes 2020-04-05
 
 import sys, os
 
@@ -71,26 +71,26 @@ def get_rot_axes(x1, x2, y1, y2):
 
 def angle_Z(angle):
     angle = angle * np.pi / 180.
-    return Matrix3D(np.array([[np.cos(angle), -np.sin(angle), 0., 0.],
-                     [np.sin(angle), np.cos(angle), 0., 0.],
-                     [0., 0., 1., 0.],
-                     [0., 0., 0., 1.]]))
+    return Matrix3D(np.array([np.cos(angle), -np.sin(angle), 0.,
+                              np.sin(angle), np.cos(angle), 0.,
+                              0., 0., 1.,
+                              0., 0., 0. ]))
 
 
 def angle_Y(angle):
     angle = angle * np.pi / 180.
-    return Matrix3D(np.array([[np.cos(angle), 0., np.sin(angle), 0.],
-                     [0., 1., 0., 0.],
-                     [-np.sin(angle), 0., np.cos(angle), 0.],
-                     [0., 0., 0., 1.]]))
+    return Matrix3D(np.array([np.cos(angle), 0., np.sin(angle),
+                              0., 1., 0.,
+                              -np.sin(angle), 0., np.cos(angle),
+                              0., 0., 0.]))
 
 
 def angle_X(angle):
     angle = angle * np.pi / 180.
-    return Matrix3D(np.array([[1., 0., 0., 0.],
-                     [0., np.cos(angle), -np.sin(angle), 0.],
-                     [0., np.sin(angle), np.cos(angle), 0.],
-                     [0., 0., 0., 1.]]))
+    return Matrix3D(np.array([1., 0., 0.,
+                              0., np.cos(angle), -np.sin(angle),
+                              0., np.sin(angle), np.cos(angle),
+                              0., 0., 0.]))
 
 
 def convert2vector( val ):
