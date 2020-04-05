@@ -262,7 +262,6 @@ class Matrix3D(object):
             self._translation = full_matrix[9:]
 
 
-
     @property
     def rotation(self):
         return self._rotation
