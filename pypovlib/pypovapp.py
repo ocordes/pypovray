@@ -64,9 +64,12 @@ class PovApp(object):
 
 
         else:
-            self._povdile = None
+            self._povfile = None
             print('This type is not supported yet: type=%i' % self._type)
 
+        # create link to settings
+        if self._povfile is not None:
+            self.settings = self._povfile.settings
 
 
     def build(self, **kwargs):

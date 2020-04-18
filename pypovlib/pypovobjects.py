@@ -14,11 +14,12 @@ except:
 
 from pypovlib.pypovbase import *
 from pypovlib.pypovtextures import *
+from pypovlib.pypovconfig import *
 
 # constants
 
 __libname__ = 'pypovlib'
-__version__ = '0.1.20'
+__version__ = '0.1.21'
 __author__ =  'Oliver Cordes (C) 2015-2020'
 
 
@@ -77,10 +78,10 @@ def _copy_file( ffile, filename, comment ):
 
 
 
-class PovObject( PovBasicObject ):
+class PovObject(PovBasicObject):
     _name = 'PovObject'
-    def __init__( self, comment=None ):
-        PovBasicObject.__init__( self, comment=comment )
+    def __init__(self, comment=None):
+        PovBasicObject.__init__(self, comment=comment)
         # all objects are active by default
         self.hidden  = False
 
@@ -99,62 +100,62 @@ class PovObject( PovBasicObject ):
         self.frame_number = 0
 
 
-    def _write_texture( self, ffile, indent=0 ):
+    def _write_texture(self, ffile, indent=0):
         if self._texture is None: return
 
         for texture in self._texture:
-            if ( isinstance( texture, (PovTexture, PovPigment, PovTextureRaw) ) ):
-                texture.write_pov( ffile, indent )
+            if ( isinstance(texture, (PovTexture, PovPigment, PovTextureRaw))):
+                texture.write_pov(ffile, indent)
             else:
-                self._write_indent( ffile, 'texture{\n', indent )
-                self._write_indent( ffile, '%s\n' % texture, indent+1 )
-                self._write_indent( ffile, '}\n', indent )
+                self._write_indent(ffile, 'texture{\n', indent)
+                self._write_indent(ffile, '%s\n' % texture, indent+1)
+                self._write_indent(ffile, '}\n', indent)
 
 
-    def set_texture( self, texture ):
+    def set_texture(self, texture):
         if self._texture is None:
             self._texture = []
-        self._texture.append( texture )
+        self._texture.append(texture)
 
 
-    def set_texture_color( self, color ):
-        self.set_texture( 'pigment { color %s }' % color )
+    def set_texture_color(self, color):
+        self.set_texture('pigment { color %s }' % color)
 
 
-    def set_lights( self, lights ):
-        if ( self._lights is None ):
-            self._lights = [ lights ]
+    def set_lights(self, lights):
+        if self._lights is None:
+            self._lights = [lights]
         else:
-            self._lights.append( lights )
+            self._lights.append(lights)
 
 
-    def write_lights( self, ffile, indent=0 ):
-        if ( self._lights is not None):
+    def write_lights(self, ffile, indent=0):
+        if self._lights is not None:
             for l in self._lights:
-                l.write_pov( ffile, indent=indent )
+                l.write_pov(ffile, indent=indent)
 
-    def add_stat_count( self, cat ):
+    def add_stat_count(self, cat):
         if cat in pypovstatistics.keys():
             pypovstatistics[cat] += 1
         else:
             pypovstatistics[cat] = 1
 
 
-    def do_statistics( self ):
+    def do_statistics(self):
         self.add_stat_count(self._name)
 
 
-    def update_timeline( self, time_abs, time_delta, fnr ):
+    def update_timeline(self, time_abs, time_delta, fnr):
         self.time_abs     = time_abs
         self.time_delta   = time_delta
         self.frame_number = fnr
 
 
-    def update_time( self, time_abs ):
+    def update_time(self, time_abs):
         pass
 
 
-    def update_timedelta( self, time_delta ):
+    def update_timedelta(self, time_delta):
         pass
 
 
@@ -1060,6 +1061,7 @@ class PovFile( PovBaseList ):
         self._postfix_file = None
 
         self.extra_files   = None
+        self.settings      = GlobalSettings()
 
 
     def config_size(self, width, height):
@@ -1123,9 +1125,16 @@ class PovFile( PovBaseList ):
         f = open(  self._filename, 'w' )
         _write_prefix_file( f )
 
+
+        # global settings pre part
+        self.settings.write_pov_pre(f)
+
         if self._prefix_file is not None:
             _copy_file( f, self._prefix_file, 'PovPreFile' )
 
+
+        # global settings mid part
+        self.settings.write_pov_mid(f)
 
         # collect declares
         declares = self.collect_declares()
@@ -1206,6 +1215,10 @@ class PovFile( PovBaseList ):
         f.write( '\n' )
 
         _write_postfix_file( f )
+
+
+        # global settings post part
+        self.settings.write_pov_post(f)
 
         if ( self._postfix_file is not None ):
             _copy_file( f, self._postfix_file, 'PovPostFile' )
