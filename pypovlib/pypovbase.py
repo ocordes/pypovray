@@ -1,7 +1,7 @@
 # pypovobjects.py
 
 # written by: Oliver Cordes 2015-02-27
-# changed by: Oliver Cordes 2020-04-05
+# changed by: Oliver Cordes 2020-05-03
 
 import sys, os
 

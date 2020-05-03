@@ -1,7 +1,7 @@
 # pypovlights.py
 
 # wirtten by: Oliver Cordes 2015-05-02
-# changed by: Oliver Cordes 2018-04-04
+# changed by: Oliver Cordes 2020-05-03
 
 import sys
 
@@ -267,3 +267,9 @@ class PovAreaLight(PovBasicLightObject):
         self._write_indent(ffile, 'adaptive %s\n' % self.adaptive, indent+1 )
         if self.jitter:
             self._write_indent(ffile, 'jitter\n', indent+1 )
+
+
+
+    class PovMedia(PovBasicObject):
+        def __init__(self):
+            PovBasicObject.__init__(self, comment='Media')

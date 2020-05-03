@@ -19,7 +19,7 @@ from pypovlib.pypovconfig import *
 # constants
 
 __libname__ = 'pypovlib'
-__version__ = '0.1.21'
+__version__ = '0.1.22'
 __author__ =  'Oliver Cordes (C) 2015-2020'
 
 
@@ -87,6 +87,7 @@ class PovObject(PovBasicObject):
 
 
         self._texture = None
+        self._photons = None
 
         self._lights = None
 
@@ -120,6 +121,18 @@ class PovObject(PovBasicObject):
 
     def set_texture_color(self, color):
         self.set_texture('pigment { color %s }' % color)
+
+
+
+    def _write_photons(self, ffile, indent=0):
+        if self._photons:
+            self._write_indent(ffile, 'photons{\n', indent)
+            self._write_indent(ffile, '%s\n' % self._photons, indent+1)
+            self._write_indent(ffile, '}\n', indent)
+
+
+    def set_photons(self, photons):
+        self._photons = photons
 
 
     def set_lights(self, lights):
@@ -466,11 +479,12 @@ class PovCSGObject( PovObject ):
             cmd( ffile, indent=indent )
 
 
-    def _write_attributes( self, ffile, indent=0 ):
-        self._write_macros( ffile, indent)
-        self._write_texture( ffile, indent )
-        self._write_pre_commands( ffile, indent )
-        self._write_geometrics( ffile, indent=indent )
+    def _write_attributes(self, ffile, indent=0):
+        self._write_macros(ffile, indent=indent)
+        self._write_texture(ffile, indent=indent)
+        self._write_photons(ffile, indent=indent)
+        self._write_pre_commands(ffile, indent=indent)
+        self._write_geometrics(ffile, indent=indent)
 
 
     def write_pov( self, ffile, indent = 0 ):
@@ -1046,6 +1060,36 @@ class PovMesh2(PovCSGObject):
         self._write_indent(ffile, '}\n', indent)
 
 
+# mesh2 objects
+class PovTriangle(PovCSGObject):
+    _name = 'Triangle'
+    def __init__(self, vertex_vectors=None,
+                       comment=None
+                        ):
+        PovCSGObject.__init__(self, comment=comment)
+        if isinstance(vertex_vectors, (list, tuple)) and len(vertex_vectors) == 3:
+            self.vertex_vectors = vertex_vectors
+        else:
+            print('Ignoring wrong triangle vertices!')
+
+
+
+    def _write_vector_list_float(self, ffile, vlist, indent):
+        for i in vlist[:-1]:
+            self._write_indent(ffile, '<%f,%f,%f>,\n' % (i[0], i[1], i[2]), indent)
+        i = vlist[-1]
+        self._write_indent(ffile, '<%f,%f,%f>\n' % (i[0], i[1], i[2]), indent)
+
+
+    def write_pov(self, ffile, indent=0):
+        if self.vertex_vectors:
+            PovCSGObject.write_pov(self, ffile, indent)
+            self._write_indent(ffile, 'triangle{\n', indent)
+            self._write_vector_list_float(ffile, self.vertex_vectors, indent+1)
+
+            self._write_attributes(ffile, indent+1)
+            self._write_indent(ffile, '}\n', indent)
+
 
 # a simple PovFile generator
 
@@ -1062,6 +1106,12 @@ class PovFile( PovBaseList ):
 
         self.extra_files   = None
         self.settings      = GlobalSettings()
+
+        self._version      = '3.7'
+
+
+    def set_version(self, version):
+        self._version = version
 
 
     def config_size(self, width, height):
@@ -1125,6 +1175,8 @@ class PovFile( PovBaseList ):
         f = open(  self._filename, 'w' )
         _write_prefix_file( f )
 
+        f.write('// set the povray version for this file\n')
+        f.write('#version %s;\n\n' % self._version)
 
         # global settings pre part
         self.settings.write_pov_pre(f)
