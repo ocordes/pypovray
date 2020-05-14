@@ -12,6 +12,7 @@ setup(
     install_requires=[
      'numpy',
      'Click',
+     'colorama',
     ],
     entry_points='''
         [console_scripts]

@@ -921,8 +921,15 @@ class PovCSGContainer( PovCSGObjectList ):
 
 class PovCSGUnion(PovCSGObjectList):
     _name = 'Union'
-    def __init__(self, comment=None):
+    def __init__(self, comment=None, split_union=False):
         PovCSGObjectList.__init__(self, comment=comment)
+
+        self._split_union = split_union
+
+
+    def set_split_union(self, split_union):
+        self._split_union = split_union
+
 
     def write_pov(self, ffile, indent = 0):
         if len(self._items) == 0:
@@ -935,6 +942,10 @@ class PovCSGUnion(PovCSGObjectList):
 
         self._write_items(ffile, indent=indent+1)
         self._write_attributes(ffile, indent+1)
+
+        if not self._split_union:
+            self._write_indent(ffile, 'split_union off\n', indent+1)
+
         self._write_indent(ffile, '}\n', indent)
 
 
